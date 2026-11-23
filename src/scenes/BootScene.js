@@ -5,8 +5,11 @@ export default class BootScene extends Phaser.Scene {
     super('BootScene');
   }
 
+  preload() {
+    this.load.image('world-map', '/assets/maps/world-map.jpg');
+  }
+
   create() {
-    // Asset loading will be added when the approved art assets are available.
     this.scene.start('GameScene');
   }
 }
