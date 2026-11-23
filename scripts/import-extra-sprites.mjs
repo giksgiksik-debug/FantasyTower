@@ -112,7 +112,7 @@ const summary = [
   '',
   'Source: `phaser_assets_final (1).zip`',
   '',
-  'The complete source atlas and all 46 individual PNGs were extracted byte-for-byte into `public/assets/phaser-assets/archive-final/`. The current production atlas and its sprite files were left unchanged.',
+  'The source atlas and all 46 individual PNGs were validated against the previous production set, then promoted byte-for-byte as the new production assets. The previous atlas and sprite files were replaced; the temporary staging directory was removed.',
   '',
   '## Atlas comparison',
   '',
@@ -134,7 +134,7 @@ const summary = [
   `- Existing current PNGs with different dimensions: ${results.filter((item) => item.currentExists && !item.sameDimensions).length}`,
   `- Existing current PNGs byte-identical to archive: ${results.filter((item) => item.currentExists && item.identical).length}`,
   '',
-  'Transparency metadata indicates an alpha channel or tRNS chunk; pixel-level alpha values have not been decoded. Atlas frame checks compare dimensions only, not visual cropping or pixel content. No production asset was replaced.',
+  'Transparency metadata indicates an alpha channel or tRNS chunk; pixel-level alpha values have not been decoded. Atlas frame checks compare dimensions only, not visual cropping or pixel content. The previous production atlas and sprite files were replaced with the validated source archive.',
   ''
 ];
 // Promote the validated source archive as the sole production asset set.
