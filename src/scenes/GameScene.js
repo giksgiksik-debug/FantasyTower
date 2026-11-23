@@ -53,8 +53,9 @@ export default class GameScene extends Phaser.Scene {
 
     const columns = width < 700 ? 4 : 8;
     const rows = Math.ceil(frameNames.length / columns);
+    const galleryTop = 34;
     const cellWidth = width / columns;
-    const cellHeight = height / rows;
+    const cellHeight = (height - galleryTop) / rows;
 
     this.galleryContainer.add(
       this.add.text(12, 8, `ASSET GALLERY · ${frameNames.length} SPRITES`, {
@@ -70,21 +71,23 @@ export default class GameScene extends Phaser.Scene {
       const column = index % columns;
       const row = Math.floor(index / columns);
       const centerX = column * cellWidth + cellWidth / 2;
-      const centerY = row * cellHeight + cellHeight / 2 + 8;
+      const cellTop = galleryTop + row * cellHeight;
+      const imageCenterY = cellTop + cellHeight * 0.34;
+      const labelY = cellTop + cellHeight * 0.82;
       const frame = atlas.get(frameName);
       const metadata = SPRITE_CATALOG[frameName];
       const maxImageWidth = cellWidth - 16;
-      const maxImageHeight = cellHeight - 32;
+      const maxImageHeight = cellHeight * 0.48;
       const imageScale = Math.min(
         maxImageWidth / frame.width,
         maxImageHeight / frame.height,
         1
       );
 
-      const image = addSprite(this, frameName, centerX, centerY - 7, { scale: imageScale });
-      const label = this.add.text(centerX, row * cellHeight + cellHeight - 19, `${frameName} · ${metadata.width}×${metadata.height}`, {
+      const image = addSprite(this, frameName, centerX, imageCenterY, { scale: imageScale });
+      const label = this.add.text(centerX, labelY, `${frameName} · ${metadata.width}×${metadata.height}`, {
         fontFamily: 'Arial, sans-serif',
-        fontSize: Math.max(10, Math.min(14, cellWidth * 0.11)),
+        fontSize: Math.max(9, Math.min(12, cellWidth * 0.075)),
         color: '#ffffff'
       }).setOrigin(0.5);
 
