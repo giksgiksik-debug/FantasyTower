@@ -122,9 +122,13 @@ export default class GameScene extends Phaser.Scene {
     const panelHeight = Math.min(height - 48, 430);
     const panel = this.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x20352b, 1)
       .setStrokeStyle(2, 0x9b8050);
-    const preview = addSprite(this, spriteId, width / 2, height / 2 - panelHeight * 0.12, {
-      displayWidth: Math.min(panelWidth * 0.58, 230),
-      displayHeight: Math.min(panelHeight * 0.48, 230)
+    const previewScale = Math.min(
+      (panelWidth * 0.58) / metadata.width,
+      (panelHeight * 0.4) / metadata.height,
+      1
+    );
+    const preview = addSprite(this, spriteId, width / 2, height / 2 - panelHeight * 0.08, {
+      scale: previewScale
     });
     const title = this.add.text(width / 2, height / 2 - panelHeight * 0.39, spriteId, {
       fontFamily: 'Arial, sans-serif',
@@ -132,7 +136,7 @@ export default class GameScene extends Phaser.Scene {
       color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
-    const description = this.add.text(width / 2, height / 2 + panelHeight * 0.28,
+    const description = this.add.text(width / 2, height / 2 + panelHeight * 0.34,
       metadata.visual + '\\n' + metadata.width + ' × ' + metadata.height + ' px\\nCategory: ' + metadata.group,
       {
         fontFamily: 'Arial, sans-serif',
