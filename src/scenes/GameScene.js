@@ -40,6 +40,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   renderAssetGallery(width, height) {
+    if (this.spriteDetailsOverlay) {
+      this.spriteDetailsOverlay.destroy(true);
+      this.spriteDetailsOverlay = null;
+    }
     if (this.galleryContainer) {
       this.galleryContainer.destroy(true);
     }
