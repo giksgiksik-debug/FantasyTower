@@ -186,7 +186,7 @@ const catalog = [
   '  return image;',
   '}',
   ''
-].join('\\n');
+].join('\n');
 writeFileSync('src/systems/SpriteAssets.js', catalog);
 rmSync(stagingRoot, { recursive: true, force: true });
 
