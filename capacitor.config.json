@@ -1,0 +1,6 @@
+{
+  "appId": "com.giksgiksik.fantasytower",
+  "appName": "FantasyTower",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
