@@ -1,0 +1,38 @@
+name: Inspect source archives
+on:
+  push:
+    paths:
+      - ".github/workflows/inspect-source-archives.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: setup/phaser-vite-capacitor
+      - name: List archive contents and locate map assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive-inspection
+          for archive in "FantasyTower-starter-assets.zip" "phaser_assets (1).zip" "phaser_assets_final (1).zip"; do
+            if [ -f "$archive" ]; then
+              {
+                echo "===== $archive ====="
+                unzip -Z1 "$archive"
+                echo
+                echo "----- map-like files -----"
+                unzip -Z1 "$archive" | grep -Ei '(^|/)(world[-_ ]?map|map|world).*(\\.(jpg|jpeg|png|webp))$|\\.(jpg|jpeg|png|webp)$' || true
+                echo
+              } >> archive-inspection/archive-report.txt
+            fi
+          done
+          cat archive-inspection/archive-report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-archive-inspection
+          path: archive-inspection/archive-report.txt
