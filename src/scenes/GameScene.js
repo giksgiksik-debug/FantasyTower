@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { addSprite, SPRITE_CATALOG } from '../systems/SpriteAssets.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -71,6 +72,7 @@ export default class GameScene extends Phaser.Scene {
       const centerX = column * cellWidth + cellWidth / 2;
       const centerY = row * cellHeight + cellHeight / 2 + 8;
       const frame = atlas.get(frameName);
+      const metadata = SPRITE_CATALOG[frameName];
       const maxImageWidth = cellWidth - 16;
       const maxImageHeight = cellHeight - 32;
       const imageScale = Math.min(
@@ -79,9 +81,8 @@ export default class GameScene extends Phaser.Scene {
         1
       );
 
-      const image = this.add.image(centerX, centerY - 7, 'game-atlas', frameName)
-        .setScale(imageScale);
-      const label = this.add.text(centerX, row * cellHeight + cellHeight - 19, frameName, {
+      const image = addSprite(this, frameName, centerX, centerY - 7, { scale: imageScale });
+      const label = this.add.text(centerX, row * cellHeight + cellHeight - 19, `${frameName} · ${metadata.width}×${metadata.height}`, {
         fontFamily: 'Arial, sans-serif',
         fontSize: Math.max(10, Math.min(14, cellWidth * 0.11)),
         color: '#ffffff'
