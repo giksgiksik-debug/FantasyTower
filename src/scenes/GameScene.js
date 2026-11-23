@@ -85,6 +85,8 @@ export default class GameScene extends Phaser.Scene {
       );
 
       const image = addSprite(this, frameName, centerX, imageCenterY, { scale: imageScale });
+      image.setInteractive({ useHandCursor: true });
+      image.on('pointerdown', () => this.showSpriteDetails(frameName));
       const label = this.add.text(centerX, labelY, `${frameName} · ${metadata.width}×${metadata.height}`, {
         fontFamily: 'Arial, sans-serif',
         fontSize: Math.max(9, Math.min(12, cellWidth * 0.075)),
@@ -93,6 +95,55 @@ export default class GameScene extends Phaser.Scene {
 
       this.galleryContainer.add([image, label]);
     });
+  }
+
+  showSpriteDetails(spriteId) {
+    if (this.spriteDetailsOverlay) {
+      this.spriteDetailsOverlay.destroy(true);
+      this.spriteDetailsOverlay = null;
+    }
+
+    const metadata = SPRITE_CATALOG[spriteId];
+    if (!metadata) return;
+
+    const { width, height } = this.scale;
+    const overlay = this.add.container(0, 0).setDepth(1000);
+    this.spriteDetailsOverlay = overlay;
+
+    const shade = this.add.rectangle(0, 0, width, height, 0x000000, 0.82)
+      .setOrigin(0)
+      .setInteractive();
+    shade.on('pointerdown', () => {
+      overlay.destroy(true);
+      this.spriteDetailsOverlay = null;
+    });
+
+    const panelWidth = Math.min(width - 28, 520);
+    const panelHeight = Math.min(height - 48, 430);
+    const panel = this.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x20352b, 1)
+      .setStrokeStyle(2, 0x9b8050);
+    const preview = addSprite(this, spriteId, width / 2, height / 2 - panelHeight * 0.12, {
+      displayWidth: Math.min(panelWidth * 0.58, 230),
+      displayHeight: Math.min(panelHeight * 0.48, 230)
+    });
+    const title = this.add.text(width / 2, height / 2 - panelHeight * 0.39, spriteId, {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 22,
+      color: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    const description = this.add.text(width / 2, height / 2 + panelHeight * 0.28,
+      metadata.visual + '\\n' + metadata.width + ' × ' + metadata.height + ' px\\nCategory: ' + metadata.group,
+      {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: Math.max(12, Math.min(17, width * 0.025)),
+        color: '#e8eee9',
+        align: 'center',
+        wordWrap: { width: panelWidth - 32 },
+        lineSpacing: 5
+      }).setOrigin(0.5);
+
+    overlay.add([shade, panel, preview, title, description]);
   }
 
   fitMap(width, height) {
