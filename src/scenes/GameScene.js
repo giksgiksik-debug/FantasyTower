@@ -86,6 +86,7 @@ export default class GameScene extends Phaser.Scene {
         const y = this.startY + row * this.gemSize;
         const gem = this.add.sprite(x, y, 'game-atlas', type)
           .setDisplaySize(46, 46)
+          .setDepth(7)
           .setInteractive({ useHandCursor: true });
         gem.row = row;
         gem.col = col;
@@ -99,7 +100,7 @@ export default class GameScene extends Phaser.Scene {
   createInputHandlers() {
     this.input.on('pointerdown', (pointer) => {
       if (!this.worldRoot) return;
-      const point = this.worldRoot.getLocalPoint(pointer.x, pointer.y);
+      const point = this.screenToWorld(pointer.x, pointer.y);
       const gem = this.findGemAt(point.x, point.y);
       if (!gem) return;
       this.dragStart = { x: point.x, y: point.y, gem };
@@ -127,6 +128,11 @@ export default class GameScene extends Phaser.Scene {
       this.clearSelection();
       this.swapGems(start.gem, this.board[targetRow][targetCol]);
     });
+  }
+
+  screenToWorld(x, y) {
+    const scale = this.worldRoot.scaleX || 1;
+    return { x: (x - this.worldRoot.x) / scale, y: (y - this.worldRoot.y) / scale };
   }
 
   findGemAt(x, y) {
