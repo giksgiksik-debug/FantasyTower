@@ -2,7 +2,7 @@
 
 Source: `phaser_assets_final (1).zip`
 
-The complete source atlas and all 46 individual PNGs were extracted byte-for-byte into `public/assets/phaser-assets/archive-final/`. The current production atlas and its sprite files were left unchanged.
+The source atlas and all 46 individual PNGs were validated against the previous production set, then promoted byte-for-byte as the new production assets. The previous atlas and sprite files were replaced; the temporary staging directory was removed.
 
 ## Atlas comparison
 
