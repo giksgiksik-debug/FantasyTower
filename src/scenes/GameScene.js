@@ -141,7 +141,7 @@ export default class GameScene extends Phaser.Scene {
       fontStyle: 'bold'
     }).setOrigin(0.5);
     const description = this.add.text(width / 2, height / 2 + panelHeight * 0.34,
-      metadata.visual + '\\n' + metadata.width + ' × ' + metadata.height + ' px\\nCategory: ' + metadata.group,
+      metadata.visual + '\n' + metadata.width + ' × ' + metadata.height + ' px\nCategory: ' + metadata.group,
       {
         fontFamily: 'Arial, sans-serif',
         fontSize: Math.max(12, Math.min(17, width * 0.025)),
