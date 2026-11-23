@@ -7,6 +7,11 @@ export default class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.image('world-map', '/assets/maps/world-map.jpg');
+    this.load.atlas(
+      'game-atlas',
+      '/assets/phaser-assets/atlas.png',
+      '/assets/phaser-assets/atlas.json'
+    );
   }
 
   create() {
