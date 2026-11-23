@@ -17,6 +17,10 @@ const spriteEntries = [
 const stagingRoot = 'public/assets/phaser-assets/archive-final';
 const stagingSprites = join(stagingRoot, 'sprites');
 mkdirSync(stagingSprites, { recursive: true });
+for (const name of ['sprite_40.png', 'gem_blue.png', 'gem_green.png', 'gem_purple.png', 'gem_red.png', 'gem_yellow.png']) {
+  const oldMixedPath = join('public/assets/phaser-assets/sprites', name);
+  if (existsSync(oldMixedPath)) rmSync(oldMixedPath);
+}
 
 function readArchiveEntry(entry) {
   return execFileSync('unzip', ['-p', archive, entry], { maxBuffer: 20 * 1024 * 1024 });
