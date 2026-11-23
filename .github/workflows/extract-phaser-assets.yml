@@ -1,0 +1,53 @@
+name: Extract Phaser assets
+
+on:
+  push:
+    branches:
+      - setup/phaser-vite-capacitor
+    paths:
+      - ".github/workflows/extract-phaser-assets.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@v4
+        with:
+          ref: setup/phaser-vite-capacitor
+          fetch-depth: 0
+
+      - name: Extract uploaded asset archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="phaser_assets (1).zip"
+          test -f "$archive" || { echo "Archive not found: $archive"; exit 1; }
+          mkdir -p public/assets/phaser-assets
+          unzip -oq "$archive" -d public/assets/phaser-assets
+          png_count=$(find public/assets/phaser-assets -type f -iname '*.png' | wc -l)
+          file_count=$(find public/assets/phaser-assets -type f | wc -l)
+          echo "Extracted files: $file_count"
+          echo "PNG sprites: $png_count"
+          test "$png_count" -gt 0
+          find public/assets/phaser-assets -type f | sort > public/assets/phaser-assets/ASSET_INDEX.txt
+          echo "Sample extracted paths:"
+          head -n 80 public/assets/phaser-assets/ASSET_INDEX.txt
+
+      - name: Commit extracted assets to working branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/phaser-assets
+          if git diff --cached --quiet; then
+            echo "No new extracted assets to commit."
+            exit 0
+          fi
+          git commit -m "Extract individual Phaser game assets"
+          git push origin HEAD:setup/phaser-vite-capacitor
