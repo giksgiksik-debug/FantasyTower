@@ -29,6 +29,10 @@ export default class GameScene extends Phaser.Scene {
       this.renderAssetGallery(width, height);
     } else {
       this.worldRoot = this.add.container(0, 0);
+      this.backgroundLayer = this.add.container(0, 0);
+      this.gameLayer = this.add.container(0, 0);
+      this.uiLayer = this.add.container(0, 0);
+      this.worldRoot.add([this.backgroundLayer, this.gameLayer, this.uiLayer]);
       this.buildWorld();
       this.fitWorld(width, height);
     }
@@ -42,26 +46,26 @@ export default class GameScene extends Phaser.Scene {
 
   buildWorld() {
     // The map and atlas are loaded by BootScene under these project-wide keys.
-    this.worldRoot.add(
+    this.backgroundLayer.add(
       this.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, 'world-map')
         .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
     );
 
     // Interface frame placement follows the supplied layout reference.
-    this.worldRoot.add(addSprite(this, 'sprite_17', 210, 600, {
+    this.uiLayer.add(addSprite(this, 'sprite_17', 210, 600, {
       displayWidth: 380, displayHeight: 210, depth: 5
     }));
 
     for (let i = 0; i < 3; i++) {
-      this.worldRoot.add(addSprite(this, 'sprite_19', 95 + i * 115, 605, {
+      this.uiLayer.add(addSprite(this, 'sprite_19', 95 + i * 115, 605, {
         scale: 0.68, depth: 6
       }));
     }
 
-    this.worldRoot.add(addSprite(this, 'sprite_22', 703, 547, {
+    this.uiLayer.add(addSprite(this, 'sprite_22', 703, 547, {
       displayWidth: 430, displayHeight: 315, depth: 4
     }));
-    this.worldRoot.add(addSprite(this, 'sprite_18', 1095, 600, {
+    this.uiLayer.add(addSprite(this, 'sprite_18', 1095, 600, {
       displayWidth: 310, displayHeight: 210, depth: 5
     }));
 
@@ -91,7 +95,7 @@ export default class GameScene extends Phaser.Scene {
         gem.row = row;
         gem.col = col;
         gem.gemType = type;
-        this.worldRoot.add(gem);
+        this.uiLayer.add(gem);
         this.board[row][col] = gem;
       }
     }
@@ -202,49 +206,48 @@ export default class GameScene extends Phaser.Scene {
   }
 
   spawnEnemy() {
-    if (!this.worldRoot || !this.textures.exists('game-atlas')) return;
+    if (!this.gameLayer || !this.textures.exists('game-atlas')) return;
 
-    // Temporary route supplied for the prototype; points are in 1280×720 map coordinates.
-    const path = new Phaser.Curves.Path(115, 165);
-    path.lineTo(255, 225);
-    path.lineTo(410, 200);
-    path.lineTo(560, 130);
-    path.lineTo(755, 145);
-    path.lineTo(835, 235);
-    path.lineTo(680, 325);
-    path.lineTo(435, 345);
-    path.lineTo(315, 435);
-    path.lineTo(270, 565);
-    path.lineTo(430, 650);
-    path.lineTo(665, 560);
-    path.lineTo(860, 520);
-    path.lineTo(1065, 610);
-    path.lineTo(1165, 470);
-    path.lineTo(1010, 355);
-    path.lineTo(1125, 275);
+    // Smooth Catmull-Rom route through the prototype's map waypoints.
+    // The enemy belongs to the world layer, so the interface always renders above it.
+    const route = new Phaser.Curves.Spline([
+      115, 165,
+      255, 225,
+      410, 200,
+      560, 130,
+      755, 145,
+      835, 235,
+      680, 325,
+      435, 345,
+      315, 435,
+      270, 565,
+      430, 650,
+      665, 560,
+      860, 520,
+      1065, 610,
+      1165, 470,
+      1010, 355,
+      1125, 275
+    ]);
 
-    const enemy = addSprite(this, 'sprite_08', 115, 165, { displayWidth: 48, displayHeight: 48, depth: 3 });
-    this.worldRoot.add(enemy);
+    const enemy = addSprite(this, 'sprite_08', 115, 165, {
+      displayWidth: 48,
+      displayHeight: 48,
+      depth: 1
+    });
+    this.gameLayer.add(enemy);
+
     const progress = { value: 0 };
-
     this.tweens.add({
       targets: progress,
       value: 1,
       duration: 22000,
       ease: 'Linear',
       onUpdate: () => {
-        const point = path.getPoint(progress.value);
+        const point = route.getPoint(progress.value);
         if (point) enemy.setPosition(point.x, point.y);
       },
       onComplete: () => enemy.destroy()
-    });
-
-    this.tweens.add({
-      targets: enemy,
-      angle: { from: -5, to: 5 },
-      duration: 220,
-      yoyo: true,
-      repeat: -1
     });
   }
 
