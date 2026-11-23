@@ -28,12 +28,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A public/assets/phaser-assets/sprites
-          git add -A public/assets/phaser-assets/archive-final
+          git add -A public/assets/phaser-assets
+          git add src/systems/SpriteAssets.js
           git add EXTRA_ASSET_REPORT.md
           if git diff --cached --quiet; then
             echo "No extracted asset changes to commit."
             exit 0
           fi
-          git commit -m "Import remaining sprite assets and inspection report"
+          git commit -m "Replace old sprite set with complete validated archive"
           git push origin "HEAD:${GITHUB_REF_NAME}"
