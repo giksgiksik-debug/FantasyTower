@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   workflow_dispatch:
-  # Run for asset-only changes too, so the APK always packages the current atlas.
+  # Run after asset-only changes and validate the current archive atlas in the APK build.
   push:
     branches:
       - main
