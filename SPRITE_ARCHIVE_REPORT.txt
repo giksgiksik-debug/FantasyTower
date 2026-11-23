@@ -1,0 +1,59 @@
+FANTASYTOWER — SPRITE ARCHIVE REPORT
+Архив: phaser_assets_final (1).zip
+Всего записей: 49
+Файлов: 48
+Папок: 1
+PNG: 47
+JPG: 0
+WEBP: 0
+
+=== ПОЛНАЯ СТРУКТУРА ===
+[DIR] sprites/
+[FILE]atlas.png | 4082994 bytes
+[FILE]atlas.json | 15652 bytes
+[FILE]sprites/sprite_18.png | 31637 bytes
+[FILE]sprites/gem_yellow.png | 53818 bytes
+[FILE]sprites/sprite_24.png | 97803 bytes
+[FILE]sprites/sprite_35.png | 40850 bytes
+[FILE]sprites/sprite_30.png | 47380 bytes
+[FILE]sprites/sprite_09.png | 189063 bytes
+[FILE]sprites/sprite_17.png | 84337 bytes
+[FILE]sprites/sprite_25.png | 51626 bytes
+[FILE]sprites/sprite_06.png | 152345 bytes
+[FILE]sprites/sprite_32.png | 27222 bytes
+[FILE]sprites/sprite_07.png | 132987 bytes
+[FILE]sprites/sprite_05.png | 250078 bytes
+[FILE]sprites/sprite_39.png | 35238 bytes
+[FILE]sprites/sprite_38.png | 46319 bytes
+[FILE]sprites/sprite_29.png | 40434 bytes
+[FILE]sprites/sprite_19.png | 35967 bytes
+[FILE]sprites/sprite_15.png | 70434 bytes
+[FILE]sprites/gem_blue.png | 55508 bytes
+[FILE]sprites/sprite_37.png | 49667 bytes
+[FILE]sprites/sprite_12.png | 237693 bytes
+[FILE]sprites/sprite_01.png | 158778 bytes
+[FILE]sprites/sprite_36.png | 36308 bytes
+[FILE]sprites/sprite_40.png | 75779 bytes
+[FILE]sprites/sprite_13.png | 109810 bytes
+[FILE]sprites/sprite_08.png | 135323 bytes
+[FILE]sprites/gem_red.png | 57064 bytes
+[FILE]sprites/sprite_16.png | 95743 bytes
+[FILE]sprites/sprite_23.png | 152701 bytes
+[FILE]sprites/sprite_00.png | 154342 bytes
+[FILE]sprites/sprite_10.png | 151600 bytes
+[FILE]sprites/sprite_11.png | 159443 bytes
+[FILE]sprites/sprite_31.png | 27924 bytes
+[FILE]sprites/sprite_14.png | 2482 bytes
+[FILE]sprites/sprite_28.png | 35461 bytes
+[FILE]sprites/sprite_02.png | 180548 bytes
+[FILE]sprites/sprite_26.png | 37507 bytes
+[FILE]sprites/gem_purple.png | 60501 bytes
+[FILE]sprites/sprite_27.png | 36104 bytes
+[FILE]sprites/gem_green.png | 56647 bytes
+[FILE]sprites/sprite_34.png | 43587 bytes
+[FILE]sprites/sprite_04.png | 146416 bytes
+[FILE]sprites/sprite_20.png | 31624 bytes
+[FILE]sprites/sprite_22.png | 31712 bytes
+[FILE]sprites/sprite_03.png | 182373 bytes
+[FILE]sprites/sprite_33.png | 40442 bytes
+[FILE]sprites/sprite_21.png | 31716 bytes
