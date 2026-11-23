@@ -28,8 +28,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/assets/phaser-assets/sprites/sprite_40.png
-          git add public/assets/phaser-assets/sprites/gem_*.png
+          git add -A public/assets/phaser-assets/sprites
+          git add -A public/assets/phaser-assets/archive-final
           git add EXTRA_ASSET_REPORT.md
           if git diff --cached --quiet; then
             echo "No extracted asset changes to commit."
