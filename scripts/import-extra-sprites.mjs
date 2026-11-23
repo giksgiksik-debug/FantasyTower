@@ -137,5 +137,58 @@ const summary = [
   'Transparency metadata indicates an alpha channel or tRNS chunk; pixel-level alpha values have not been decoded. Atlas frame checks compare dimensions only, not visual cropping or pixel content. No production asset was replaced.',
   ''
 ];
+// Promote the validated source archive as the sole production asset set.
+const productionRoot = 'public/assets/phaser-assets';
+const productionSprites = join(productionRoot, 'sprites');
+rmSync(productionSprites, { recursive: true, force: true });
+mkdirSync(productionSprites, { recursive: true });
+for (const item of results) {
+  const name = item.name;
+  const bytes = readFileSync(join(stagingSprites, name));
+  writeFileSync(join(productionSprites, name), bytes);
+}
+writeFileSync(join(productionRoot, 'atlas.json'), incomingAtlasBytes);
+writeFileSync(join(productionRoot, 'atlas.png'), incomingAtlasPng);
+
+// Rebuild the catalog from the new atlas. Semantic roles are deliberately
+// unclassified until the new artwork is visually reviewed.
+const catalogEntries = Object.entries(incomingAtlas.frames ?? {}).map(([name, value]) => {
+  const frame = value.frame;
+  return `  ${name}: Object.freeze({ width: ${frame.w}, height: ${frame.h}, group: 'unclassified-source-art', visual: 'Source archive artwork; gameplay role not yet assigned' })`;
+});
+const catalog = [
+  '// Generated from public/assets/phaser-assets/atlas.json.',
+  '// Artwork roles are intentionally unclassified pending visual review.',
+  'export const SPRITE_CATALOG = Object.freeze({',
+  ...catalogEntries.map((line) => line + ','),
+  '});',
+  '',
+  'export const SPRITE_IDS = Object.freeze(Object.keys(SPRITE_CATALOG));',
+  '',
+  "export function hasSprite(scene, spriteId) {",
+  "  if (!scene?.textures?.exists('game-atlas')) return false;",
+  "  const texture = scene.textures.get('game-atlas');",
+  '  return Boolean(SPRITE_CATALOG[spriteId] && texture.has(spriteId));',
+  '}',
+  '',
+  '/** Create an image from a named frame in the shared Phaser atlas. */',
+  'export function addSprite(scene, spriteId, x, y, options = {}) {',
+  '  if (!hasSprite(scene, spriteId)) {',
+  "    throw new Error('Unknown or unloaded FantasyTower sprite: ' + spriteId);",
+  '  }',
+  "  const image = scene.add.image(x, y, 'game-atlas', spriteId);",
+  '  if (options.origin) image.setOrigin(options.origin.x ?? 0.5, options.origin.y ?? 0.5);',
+  '  if (Number.isFinite(options.scale)) image.setScale(options.scale);',
+  '  if (Number.isFinite(options.displayWidth) && Number.isFinite(options.displayHeight)) image.setDisplaySize(options.displayWidth, options.displayHeight);',
+  '  if (Number.isFinite(options.depth)) image.setDepth(options.depth);',
+  '  if (options.tint !== undefined) image.setTint(options.tint);',
+  '  if (options.alpha !== undefined) image.setAlpha(options.alpha);',
+  '  return image;',
+  '}',
+  ''
+].join('\\n');
+writeFileSync('src/systems/SpriteAssets.js', catalog);
+rmSync(stagingRoot, { recursive: true, force: true });
+
 writeFileSync('EXTRA_ASSET_REPORT.md', summary.join('\n'));
 console.log(summary.join('\n'));
