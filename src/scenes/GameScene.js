@@ -20,6 +20,9 @@ export default class GameScene extends Phaser.Scene {
     this.enemyTimer = null;
     this.enemyTweens = [];
     this.worldRoot = null;
+    this.DEBUG_PATH = true;
+    this.roadPath = null;
+    this.pathEditor = null;
   }
 
   create() {
@@ -45,6 +48,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.enemyTimer) this.enemyTimer.remove(false);
       this.enemyTweens.forEach((tween) => tween.stop());
       this.enemyTweens = [];
+      if (this.pathEditor?.pointerHandler) this.input.off('pointerdown', this.pathEditor.pointerHandler);
     });
   }
 
@@ -79,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.createBoard();
     this.createInputHandlers();
+    this.createRoadPath();
 
     this.enemyTimer = this.time.addEvent({
       delay: 4500,
@@ -86,7 +91,7 @@ export default class GameScene extends Phaser.Scene {
       callbackScope: this,
       loop: true
     });
-    this.spawnEnemy();
+    if (!this.DEBUG_PATH) this.spawnEnemy();
   }
 
   createBoard() {
@@ -213,49 +218,46 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  spawnEnemy() {
-    if (!this.gameLayer || !this.textures.exists('game-atlas')) return;
-
-    // Follow the road centerline on the 1280x714 map.
-    // A polyline is intentional: a spline can overshoot the narrow bridge and bends.
-    const routePoints = [
-      [120, 155], [135, 190], [165, 220], [205, 242], [250, 255],
-      [300, 263], [350, 265], [400, 265], [445, 270], [485, 275],
-      [520, 270], [550, 250], [575, 225], [600, 195], [630, 165],
-      [665, 145], [705, 132], [750, 128], [790, 132], [830, 145],
-      [860, 168], [882, 195], [895, 225], [895, 252], [882, 278],
-      [860, 298], [830, 313], [790, 324], [745, 330], [700, 334],
-      [655, 338], [610, 340], [565, 342], [520, 345], [480, 350],
-      [445, 355], [415, 365], [390, 385], [365, 410], [335, 435],
-      [300, 460], [265, 490], [240, 520], [230, 550], [240, 575],
-      [265, 592], [305, 605], [350, 610], [395, 610], [440, 605],
-      [485, 595], [530, 582], [575, 565], [620, 548], [665, 535],
-      [710, 530], [755, 532], [800, 540], [845, 550], [890, 562],
-      [935, 575], [980, 585], [1020, 585], [1055, 575], [1085, 555],
-      [1110, 530], [1125, 500], [1125, 470], [1115, 440], [1095, 410],
-      [1075, 380], [1055, 350], [1045, 320], [1050, 292], [1070, 268],
-      [1095, 248], [1125, 232], [1155, 222]
+  createRoadPath() {
+    // Coordinates are in the 1280x714 map design space.
+    // These are editable starter points; DEBUG_PATH lets you refine them on the phone.
+    const points = [
+      155, 175, 245, 215, 385, 200, 565, 145, 740, 148,
+      845, 205, 815, 275, 650, 320, 465, 340, 345, 385,
+      265, 470, 240, 565, 335, 645, 490, 645, 645, 570,
+      800, 550, 955, 620, 1105, 610, 1140, 515, 1030, 425,
+      1020, 340, 1125, 270
     ];
-    const route = new Phaser.Curves.Path(routePoints[0][0], routePoints[0][1]);
-    routePoints.slice(1).forEach(([x, y]) => route.lineTo(x, y));
 
-    const enemy = addSprite(this, 'sprite_08', 92, 175, {
+    this.roadPoints = [...points];
+    this.roadPath = new Phaser.Curves.Spline(this.roadPoints);
+
+    if (this.DEBUG_PATH) this.enablePathEditor();
+  }
+
+  spawnEnemy(duration = 24000) {
+    if (!this.gameLayer || !this.roadPath || !this.textures.exists('game-atlas')) return;
+
+    const start = this.roadPath.getPoint(0);
+    const enemy = addSprite(this, 'sprite_08', start.x, start.y, {
       displayWidth: 44,
       displayHeight: 44,
-      depth: 2
-    });
+      depth: start.y
+    }).setOrigin(0.5, 0.85);
     this.gameLayer.add(enemy);
 
     const progress = { value: 0 };
     const tween = this.tweens.add({
       targets: progress,
       value: 1,
-      duration: 42000,
+      duration,
       ease: 'Linear',
       onUpdate: () => {
-        const point = route.getPoint(progress.value);
-        if (point) enemy.setPosition(point.x, point.y);
-        // Keep the mob sprite upright; atlas artwork is not authored for directional rotation.
+        const point = this.roadPath?.getPoint(progress.value);
+        if (point) {
+          enemy.setPosition(point.x, point.y);
+          enemy.setDepth(point.y);
+        }
       },
       onComplete: () => {
         enemy.destroy();
@@ -263,6 +265,79 @@ export default class GameScene extends Phaser.Scene {
       }
     });
     this.enemyTweens.push(tween);
+  }
+
+  enablePathEditor() {
+    if (this.pathEditor) {
+      this.pathEditor.graphics.destroy();
+      this.pathEditor.controls.forEach((control) => control.destroy());
+      if (this.pathEditor.pointerHandler) this.input.off('pointerdown', this.pathEditor.pointerHandler);
+    }
+
+    const graphics = this.add.graphics();
+    this.gameLayer.add(graphics);
+    const controls = [];
+    const drawPath = () => {
+      graphics.clear();
+      if (this.roadPoints.length >= 4) {
+        this.roadPath = new Phaser.Curves.Spline(this.roadPoints);
+        graphics.lineStyle(5, 0x00ff66, 0.95);
+        this.roadPath.draw(graphics, 192);
+        graphics.fillStyle(0xffcc00, 1);
+        for (let i = 0; i < this.roadPoints.length; i += 2) {
+          graphics.fillCircle(this.roadPoints[i], this.roadPoints[i + 1], 5);
+        }
+      } else {
+        this.roadPath = null;
+      }
+    };
+
+    const style = {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '17px',
+      color: '#00ff66',
+      backgroundColor: '#101010',
+      padding: { x: 9, y: 7 }
+    };
+    const addControl = (x, label, callback) => {
+      const control = this.add.text(x, 14, label, style)
+        .setDepth(3000)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: true });
+      control.on('pointerdown', (pointer) => {
+        pointer.event?.stopPropagation?.();
+        callback();
+      });
+      this.uiLayer.add(control);
+      controls.push(control);
+    };
+
+    addControl(18, 'Очистить', () => {
+      this.roadPoints = [];
+      drawPath();
+    });
+    addControl(132, 'Убрать', () => {
+      this.roadPoints.splice(-2, 2);
+      drawPath();
+    });
+    addControl(230, 'Тест моба', () => {
+      if (this.roadPath) this.spawnEnemy(24000);
+    });
+    addControl(355, 'Координаты', () => {
+      const value = this.roadPoints.join(', ');
+      window.prompt('Скопируй массив координат в createRoadPath():', value);
+    });
+
+    const pointerHandler = (pointer) => {
+      const point = this.screenToWorld(pointer.x, pointer.y);
+      // Keep edits on the map only; reserve the top strip for editor controls.
+      if (point.y < 62 || point.y > MAP_HEIGHT || point.x < 0 || point.x > DESIGN_WIDTH) return;
+      this.roadPoints.push(Math.round(point.x), Math.round(point.y));
+      drawPath();
+    };
+    this.input.on('pointerdown', pointerHandler);
+    this.pathEditor = { graphics, controls, pointerHandler };
+    drawPath();
   }
 
   fitWorld(width, height) {
