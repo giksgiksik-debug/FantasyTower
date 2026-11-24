@@ -5,6 +5,14 @@ const DESIGN_WIDTH = 1280;
 const DESIGN_HEIGHT = 1024;
 const MAP_HEIGHT = 714;
 const GEM_TYPES = ['gem_purple', 'gem_yellow', 'gem_green', 'gem_blue', 'gem_red'];
+const ENEMY_CONFIGS = Object.freeze({
+  goblin:   { frame: 'sprite_08', scale: 0.52, duration: 20000, stepSpeed: 13, hop: 7, tilt: 6 },
+  orc:      { frame: 'sprite_09', scale: 0.56, duration: 26000, stepSpeed: 9, hop: 5, tilt: 5 },
+  skeleton: { frame: 'sprite_10', scale: 0.54, duration: 22000, stepSpeed: 11, hop: 6, tilt: 6 },
+  wolf:     { frame: 'sprite_11', scale: 0.54, duration: 17000, stepSpeed: 15, hop: 8, tilt: 4 },
+  boss:     { frame: 'sprite_12', scale: 0.65, duration: 34000, stepSpeed: 6, hop: 4, tilt: 4 }
+});
+const ENEMY_TYPES = Object.freeze(Object.keys(ENEMY_CONFIGS));
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -19,6 +27,7 @@ export default class GameScene extends Phaser.Scene {
     this.dragStart = null;
     this.enemyTimer = null;
     this.enemyTweens = [];
+    this.enemySpawnIndex = 0;
     this.worldRoot = null;
     this.DEBUG_PATH = false;
     this.roadPath = null;
@@ -88,11 +97,10 @@ export default class GameScene extends Phaser.Scene {
     if (!this.DEBUG_PATH) {
       this.enemyTimer = this.time.addEvent({
         delay: 4500,
-        callback: this.spawnEnemy,
-        callbackScope: this,
+        callback: () => this.spawnNextEnemy(),
         loop: true
       });
-      this.spawnEnemy();
+      this.spawnEnemy('goblin');
     }
   }
 
@@ -241,45 +249,93 @@ export default class GameScene extends Phaser.Scene {
     if (this.DEBUG_PATH) this.enablePathEditor();
   }
 
-  spawnEnemy(duration = 24000) {
-    if (!this.gameLayer || !this.roadPath || !this.textures.exists('game-atlas')) return;
+  spawnNextEnemy() {
+    const type = ENEMY_TYPES[this.enemySpawnIndex % ENEMY_TYPES.length];
+    this.enemySpawnIndex += 1;
+    this.spawnEnemy(type);
+  }
 
-    // Start the mob just inside the path and move it on the very first tween update.
+  spawnEnemy(type = 'goblin') {
+    if (!this.gameLayer || !this.roadPath || !this.textures.exists('game-atlas')) return null;
+
+    const cfg = ENEMY_CONFIGS[type] || ENEMY_CONFIGS.goblin;
     const progress = { value: 0.001 };
     const start = this.roadPath.getPoint(progress.value);
-    const enemy = addSprite(this, 'sprite_08', start.x, start.y, {
-      displayWidth: 44,
-      displayHeight: 44,
-      depth: start.y
-    }).setOrigin(0.5, 0.85);
-    this.gameLayer.add(enemy);
 
-    const tween = this.tweens.add({
-      targets: progress,
-      value: 1,
-      duration,
+    // The container follows the road; the sprite animates independently inside it.
+    const container = this.add.container(start.x, start.y);
+    const shadow = this.add.ellipse(
+      0, 0,
+      56 * cfg.scale * 1.6,
+      20 * cfg.scale * 1.6,
+      0x000000,
+      0.38
+    );
+    const sprite = this.add.sprite(0, 0, 'game-atlas', cfg.frame)
+      .setOrigin(0.5, 0.92)
+      .setScale(cfg.scale);
+
+    container.add([shadow, sprite]);
+    this.gameLayer.add(container);
+    container.setDepth(start.y);
+
+    const pos = new Phaser.Math.Vector2();
+    const tangent = new Phaser.Math.Vector2();
+    let facingDir = 1;
+    let stridePhase = Math.random() * Math.PI * 2;
+    let speedMultiplier = 1;
+    let moveTween;
+
+    moveTween = this.tweens.addCounter({
+      from: progress.value,
+      to: 1,
+      duration: cfg.duration,
       ease: 'Linear',
-      delay: 0,
-      onStart: () => {
-        const point = this.roadPath?.getPoint(progress.value);
-        if (point) {
-          enemy.setPosition(point.x, point.y);
-          enemy.setDepth(point.y);
+      onUpdate: (tween) => {
+        const t = tween.getValue();
+        this.roadPath.getPoint(t, pos);
+        this.roadPath.getTangent(t, tangent);
+
+        container.setPosition(pos.x, pos.y);
+        container.setDepth(pos.y);
+
+        // Keep the last facing direction around near-vertical path sections.
+        if (tangent.x < -0.08) {
+          facingDir = -1;
+          sprite.setFlipX(true);
+        } else if (tangent.x > 0.08) {
+          facingDir = 1;
+          sprite.setFlipX(false);
         }
-      },
-      onUpdate: () => {
-        const point = this.roadPath?.getPoint(progress.value);
-        if (point) {
-          enemy.setPosition(point.x, point.y);
-          enemy.setDepth(point.y);
-        }
+
+        const deltaSeconds = (this.game.loop.delta / 1000) * speedMultiplier;
+        stridePhase += deltaSeconds * cfg.stepSpeed;
+
+        const lift = Math.abs(Math.sin(stridePhase));
+        const sway = Math.sin(stridePhase);
+
+        sprite.y = -lift * cfg.hop;
+        sprite.setScale(
+          cfg.scale * (1 + (1 - lift) * 0.06),
+          cfg.scale * (1 - (1 - lift) * 0.05)
+        );
+        sprite.angle = sway * cfg.tilt + facingDir * 4;
+        shadow.setScale(1 - lift * 0.22);
       },
       onComplete: () => {
-        enemy.destroy();
-        this.enemyTweens = this.enemyTweens.filter((item) => item !== tween);
+        container.destroy();
+        this.enemyTweens = this.enemyTweens.filter((item) => item !== moveTween);
       }
     });
-    this.enemyTweens.push(tween);
+
+    container.setSpeedMultiplier = (multiplier) => {
+      const nextMultiplier = Number.isFinite(multiplier) ? Math.max(0, multiplier) : 1;
+      speedMultiplier = nextMultiplier;
+      moveTween.timeScale = nextMultiplier;
+    };
+
+    this.enemyTweens.push(moveTween);
+    return container;
   }
 
   enablePathEditor() {
