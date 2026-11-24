@@ -216,128 +216,136 @@ export default class GameScene extends Phaser.Scene {
 
   createBottomUi() {
     const dock = this.add.graphics().setDepth(1490);
-    dock.fillGradientStyle(0x0d1526, 0x0d1526, 0x070b14, 0x070b14, 0.98);
+    dock.fillGradientStyle(0x111d31, 0x111d31, 0x080e1b, 0x080e1b, 1);
     dock.fillRect(0, MAP_HEIGHT, DESIGN_WIDTH, DESIGN_HEIGHT - MAP_HEIGHT);
-    dock.lineStyle(3, 0xc8963e, 0.95);
+    dock.lineStyle(2, 0x9b7438, 0.9);
     dock.lineBetween(0, MAP_HEIGHT, DESIGN_WIDTH, MAP_HEIGHT);
     this.uiLayer.add(dock);
 
-    this.uiLayer.add(addSprite(this, 'sprite_17', 244, 870, {
-      displayWidth: 472, displayHeight: 196, depth: 1500
-    }));
-    this.uiLayer.add(addSprite(this, 'sprite_25', 244, 738, {
-      displayWidth: 236, displayHeight: 30, depth: 1505
-    }));
-    this.uiLayer.add(this.add.text(244, 738, 'Башни Обороны', {
-      fontSize: '16px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#fff6d6', stroke: '#3b2306', strokeThickness: 3
+    // Левая зона: компактные карточки башен без пересечения с Match-3.
+    const leftPanel = this.add.graphics().setDepth(1498);
+    leftPanel.fillStyle(0x17243a, 0.94);
+    leftPanel.fillRoundedRect(18, 746, 374, 258, 12);
+    leftPanel.lineStyle(1.5, 0x92703b, 0.9);
+    leftPanel.strokeRoundedRect(18, 746, 374, 258, 12);
+    this.uiLayer.add(leftPanel);
+    this.uiLayer.add(this.add.text(205, 761, 'БАШНИ ОБОРОНЫ', {
+      fontSize: '17px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#f7d98a', stroke: '#35230d', strokeThickness: 3,
+      letterSpacing: 1.5
     }).setOrigin(0.5).setDepth(1506));
 
     TOWER_CARD_ORDER.forEach((key, index) => {
       const cfg = TOWER_TYPES[key];
       const style = CARD_STYLES[key];
-      const x = 73 + index * 114;
-      const y = 870;
+      const x = 61 + index * 94;
+      const y = 875;
       const container = this.add.container(x, y).setDepth(1502);
-      const glow = this.add.graphics();
-      glow.fillStyle(style.bgTint, 0.95);
-      glow.fillRoundedRect(-46, -74, 92, 148, 10);
-      glow.lineStyle(2, style.accent, 0.9);
-      glow.strokeRoundedRect(-44, -72, 88, 144, 9);
-      const frame = addSprite(this, 'sprite_19', 0, 0, { displayWidth: 104, displayHeight: 160 });
-      const namePlate = this.add.graphics();
-      namePlate.fillStyle(0x0b111e, 0.9);
-      namePlate.fillRoundedRect(-41, -69, 82, 20, 5);
-      namePlate.lineStyle(1, style.accent, 0.85);
-      namePlate.strokeRoundedRect(-41, -69, 82, 20, 5);
-      const name = this.add.text(0, -59, style.label, {
+      const card = this.add.graphics();
+      card.fillStyle(style.bgTint, 1);
+      card.fillRoundedRect(-41, -82, 82, 164, 9);
+      card.lineStyle(2, style.accent, 0.95);
+      card.strokeRoundedRect(-41, -82, 82, 164, 9);
+      card.lineStyle(1, 0xffffff, 0.18);
+      card.strokeRoundedRect(-36, -77, 72, 154, 7);
+
+      const name = this.add.text(0, -65, style.label, {
         fontSize: '12px', fontFamily: 'Arial', fontStyle: 'bold',
-        color: '#ffffff', stroke: '#000000', strokeThickness: 2
+        color: '#ffffff', align: 'center',
+        stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
-      const icon = addSprite(this, cfg.frame, 0, -4, { scale: 0.43 });
+      const icon = addSprite(this, cfg.frame, 0, -5, { scale: 0.37 });
+      const divider = this.add.graphics();
+      divider.lineStyle(1, style.accent, 0.65);
+      divider.lineBetween(-30, 43, 30, 43);
       const pricePlate = this.add.graphics();
-      pricePlate.fillStyle(0x090e1a, 0.94);
-      pricePlate.fillRoundedRect(-38, 46, 76, 22, 6);
-      pricePlate.lineStyle(1.5, 0xd4a446, 0.9);
-      pricePlate.strokeRoundedRect(-38, 46, 76, 22, 6);
-      const coin = addSprite(this, 'sprite_32', -19, 57, { scale: 0.26 });
-      const price = this.add.text(8, 57, String(cfg.cost), {
-        fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
-        color: '#ffd859', stroke: '#000000', strokeThickness: 2
+      pricePlate.fillStyle(0x080e18, 0.98);
+      pricePlate.fillRoundedRect(-32, 50, 64, 24, 5);
+      const coin = addSprite(this, 'sprite_32', -15, 62, { scale: 0.21 });
+      const price = this.add.text(7, 62, String(cfg.cost), {
+        fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold',
+        color: '#ffdf72', stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
       const outline = this.add.graphics().setVisible(false);
-      outline.lineStyle(3, 0x66ff88, 1);
-      outline.strokeRoundedRect(-51, -79, 102, 158, 11);
-      container.add([glow, frame, namePlate, name, icon, pricePlate, coin, price, outline]);
-      container.setSize(104, 160).setInteractive({ useHandCursor: true });
+      outline.lineStyle(3, 0x7dff9b, 1);
+      outline.strokeRoundedRect(-45, -86, 90, 172, 11);
+      container.add([card, name, icon, divider, pricePlate, coin, price, outline]);
+      container.setSize(84, 166).setInteractive({ useHandCursor: true });
       container.on('pointerdown', () => this.selectTowerCard(key));
       this.uiLayer.add(container);
       this.towerCards[key] = {
-        container, baseY: y, frame, icon, priceText: price, selectOutline: outline, cfg
+        container, baseY: y, frame: card, icon, priceText: price, selectOutline: outline, cfg
       };
     });
 
+    // Центральная зона: поле Match-3 с одинаковыми отступами вокруг сетки.
+    const boardPanel = this.add.graphics().setDepth(1498);
+    boardPanel.fillStyle(0x17243a, 0.96);
+    boardPanel.fillRoundedRect(414, 738, 452, 266, 12);
+    boardPanel.lineStyle(2, 0xc18a3b, 0.95);
+    boardPanel.strokeRoundedRect(414, 738, 452, 266, 12);
+    this.uiLayer.add(boardPanel);
     this.uiLayer.add(addSprite(this, 'sprite_22', 640, 870, {
-      displayWidth: 432, displayHeight: 316, depth: 1500
+      displayWidth: 414, displayHeight: 282, depth: 1500
     }));
     this.gemSelectCursor = addSprite(this, 'sprite_23', 0, 0, {
-      displayWidth: 58, displayHeight: 58, depth: 1515
+      displayWidth: 54, displayHeight: 54, depth: 1515
     }).setVisible(false);
     this.uiLayer.add(this.gemSelectCursor);
     this.tweens.add({
-      targets: this.gemSelectCursor, scaleX: this.gemSelectCursor.scaleX * 1.07,
-      scaleY: this.gemSelectCursor.scaleY * 1.07, duration: 450, yoyo: true, repeat: -1
+      targets: this.gemSelectCursor, scaleX: this.gemSelectCursor.scaleX * 1.06,
+      scaleY: this.gemSelectCursor.scaleY * 1.06, duration: 480, yoyo: true, repeat: -1
     });
 
-    this.uiLayer.add(addSprite(this, 'sprite_18', 1099, 870, {
-      displayWidth: 342, displayHeight: 196, depth: 1500
-    }));
-    const rightDeco = this.add.graphics().setDepth(1501);
-    rightDeco.fillStyle(0x131d33, 0.85);
-    rightDeco.fillRoundedRect(942, 785, 148, 170, 8);
-    rightDeco.fillStyle(0x231c14, 0.88);
-    rightDeco.fillRoundedRect(1096, 785, 160, 170, 8);
-    rightDeco.lineStyle(1.5, 0xc8963e, 0.75);
-    rightDeco.strokeRoundedRect(942, 785, 148, 170, 8);
-    rightDeco.strokeRoundedRect(1096, 785, 160, 170, 8);
-    this.uiLayer.add(rightDeco);
+    // Правая зона: показатели слева, цель волны справа, заклинание внизу.
+    const rightPanel = this.add.graphics().setDepth(1498);
+    rightPanel.fillStyle(0x17243a, 0.96);
+    rightPanel.fillRoundedRect(882, 746, 380, 258, 12);
+    rightPanel.lineStyle(1.5, 0x92703b, 0.9);
+    rightPanel.strokeRoundedRect(882, 746, 380, 258, 12);
+    rightPanel.lineStyle(1, 0x8c744e, 0.65);
+    rightPanel.lineBetween(1072, 765, 1072, 922);
+    this.uiLayer.add(rightPanel);
 
-    this.comboText = this.add.text(1016, 804, 'Комбо x1', {
-      fontSize: '18px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#ffd859', stroke: '#000000', strokeThickness: 3
+    this.comboText = this.add.text(975, 779, 'КОМБО  x1', {
+      fontSize: '17px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#ffdc78', stroke: '#111827', strokeThickness: 3
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.comboText);
-    const manaCrystal = addSprite(this, 'sprite_33', 1016, 852, { scale: 0.56, depth: 1503 });
+    const manaCrystal = addSprite(this, 'sprite_33', 975, 835, { scale: 0.48, depth: 1503 });
     this.uiLayer.add(manaCrystal);
-    this.tweens.add({ targets: manaCrystal, y: 847, duration: 900, yoyo: true,
+    this.tweens.add({ targets: manaCrystal, y: 831, duration: 950, yoyo: true,
       repeat: -1, ease: 'Sine.easeInOut' });
-    this.manaGainText = this.add.text(1016, 892, '+15 маны', {
+    this.manaGainText = this.add.text(975, 882, '+15 маны', {
       fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#6ee2ff', stroke: '#000000', strokeThickness: 2
+      color: '#83e5ff', stroke: '#111827', strokeThickness: 2
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.manaGainText);
 
-    this.spellBtnBg = addSprite(this, 'sprite_26', 1016, 948, {
-      displayWidth: 134, displayHeight: 32, depth: 1503
-    }).setInteractive({ useHandCursor: true });
-    this.spellBtnText = this.add.text(1016, 948, '⚡ Разряд (50)', {
+    this.uiLayer.add(addSprite(this, 'sprite_39', 1166, 792, { scale: 0.36, depth: 1503 }));
+    this.waveGoalTitle = this.add.text(1166, 839, `ВОЛНА ${this.waveNumber}/${this.maxWaves}`, {
+      fontSize: '16px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#ffdc78', stroke: '#111827', strokeThickness: 3
+    }).setOrigin(0.5).setDepth(1503);
+    this.uiLayer.add(this.waveGoalTitle);
+    const goalText = this.add.text(1166, 887, 'Отразить 15 волн\\nи защитить замок', {
       fontSize: '13px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#ffffff', stroke: '#081b33', strokeThickness: 2
+      color: '#f3e5c2', align: 'center', lineSpacing: 4,
+      stroke: '#111827', strokeThickness: 2,
+      wordWrap: { width: 160 }
+    }).setOrigin(0.5).setDepth(1503);
+    this.uiLayer.add(goalText);
+
+    this.spellBtnBg = this.add.rectangle(1072, 960, 340, 42, 0x8a5a18, 1)
+      .setStrokeStyle(2, 0xf0c45c, 1)
+      .setDepth(1503)
+      .setInteractive({ useHandCursor: true });
+    this.spellBtnText = this.add.text(1072, 960, '⚡  РАЗРЯД  ·  50 МАНЫ', {
+      fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#fff4d0', stroke: '#3a230b', strokeThickness: 3
     }).setOrigin(0.5).setDepth(1504);
     this.uiLayer.add([this.spellBtnBg, this.spellBtnText]);
     this.spellBtnBg.on('pointerdown', () => this.castLightningSpell());
-
-    this.uiLayer.add(addSprite(this, 'sprite_39', 1176, 808, { scale: 0.44, depth: 1503 }));
-    this.waveGoalTitle = this.add.text(1176, 846, `Волна ${this.waveNumber}/${this.maxWaves}`, {
-      fontSize: '17px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#ffd859', stroke: '#000000', strokeThickness: 3
-    }).setOrigin(0.5).setDepth(1503);
-    this.uiLayer.add(this.waveGoalTitle);
-    this.uiLayer.add(this.add.text(1176, 904, 'Отразить 15 волн\\nи защитить замок', {
-      fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold',
-      color: '#f3e5c2', align: 'center', lineSpacing: 4,
-      stroke: '#000000', strokeThickness: 2
-    }).setOrigin(0.5).setDepth(1503));
 
     this.refreshCardStates();
     this.refreshSpellButton();
