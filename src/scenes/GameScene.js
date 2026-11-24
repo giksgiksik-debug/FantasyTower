@@ -85,13 +85,15 @@ export default class GameScene extends Phaser.Scene {
     this.createInputHandlers();
     this.createRoadPath();
 
-    this.enemyTimer = this.time.addEvent({
-      delay: 4500,
-      callback: this.spawnEnemy,
-      callbackScope: this,
-      loop: true
-    });
-    if (!this.DEBUG_PATH) this.spawnEnemy();
+    if (!this.DEBUG_PATH) {
+      this.enemyTimer = this.time.addEvent({
+        delay: 4500,
+        callback: this.spawnEnemy,
+        callbackScope: this,
+        loop: true
+      });
+      this.spawnEnemy();
+    }
   }
 
   createBoard() {
