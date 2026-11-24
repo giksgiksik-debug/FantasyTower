@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { addSprite, SPRITE_CATALOG } from '../systems/SpriteAssets.js';
 
 const DESIGN_WIDTH = 1280;
-const DESIGN_HEIGHT = 720;
+const DESIGN_HEIGHT = 1024;
+const MAP_HEIGHT = 714;
 const GEM_TYPES = ['gem_purple', 'gem_yellow', 'gem_green', 'gem_blue', 'gem_red'];
 
 export default class GameScene extends Phaser.Scene {
@@ -12,11 +13,12 @@ export default class GameScene extends Phaser.Scene {
     this.rows = 5;
     this.cols = 7;
     this.gemSize = 56;
-    this.startX = 535;
-    this.startY = 435;
+    this.startX = 444;
+    this.startY = 758;
     this.selectedGem = null;
     this.dragStart = null;
     this.enemyTimer = null;
+    this.enemyTweens = [];
     this.worldRoot = null;
   }
 
@@ -41,32 +43,38 @@ export default class GameScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       if (this.enemyTimer) this.enemyTimer.remove(false);
+      this.enemyTweens.forEach((tween) => tween.stop());
+      this.enemyTweens = [];
     });
   }
 
   buildWorld() {
     // The map and atlas are loaded by BootScene under these project-wide keys.
     this.backgroundLayer.add(
-      this.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, 'world-map')
-        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+      this.add.image(DESIGN_WIDTH / 2, MAP_HEIGHT / 2, 'world-map')
+        .setDisplaySize(DESIGN_WIDTH, MAP_HEIGHT)
     );
 
+    // Dedicated opaque HUD shelf below the complete map: no road is hidden by UI frames.
+    this.uiLayer.add(this.add.rectangle(0, MAP_HEIGHT, DESIGN_WIDTH, DESIGN_HEIGHT - MAP_HEIGHT, 0x101a2d)
+      .setOrigin(0).setDepth(0));
+
     // Interface frame placement follows the supplied layout reference.
-    this.uiLayer.add(addSprite(this, 'sprite_17', 210, 600, {
-      displayWidth: 380, displayHeight: 210, depth: 5
+    this.uiLayer.add(addSprite(this, 'sprite_17', 190, 870, {
+      displayWidth: 350, displayHeight: 230, depth: 5
     }));
 
     for (let i = 0; i < 3; i++) {
-      this.uiLayer.add(addSprite(this, 'sprite_19', 95 + i * 115, 605, {
+      this.uiLayer.add(addSprite(this, 'sprite_19', 75 + i * 105, 870, {
         scale: 0.68, depth: 6
       }));
     }
 
-    this.uiLayer.add(addSprite(this, 'sprite_22', 703, 547, {
+    this.uiLayer.add(addSprite(this, 'sprite_22', 640, 870, {
       displayWidth: 430, displayHeight: 315, depth: 4
     }));
-    this.uiLayer.add(addSprite(this, 'sprite_18', 1095, 600, {
-      displayWidth: 310, displayHeight: 210, depth: 5
+    this.uiLayer.add(addSprite(this, 'sprite_18', 1090, 870, {
+      displayWidth: 300, displayHeight: 230, depth: 5
     }));
 
     this.createBoard();
@@ -208,47 +216,62 @@ export default class GameScene extends Phaser.Scene {
   spawnEnemy() {
     if (!this.gameLayer || !this.textures.exists('game-atlas')) return;
 
-    // Smooth Catmull-Rom route through the prototype's map waypoints.
-    // The enemy belongs to the world layer, so the interface always renders above it.
+    // Waypoints trace the visible stone road on the 1280x714 map.
+    // The route is confined to the map region; the HUD starts below it.
     const route = new Phaser.Curves.Spline([
-      115, 165,
-      255, 225,
-      410, 200,
-      560, 130,
-      755, 145,
-      835, 235,
-      680, 325,
-      435, 345,
-      315, 435,
-      270, 565,
-      430, 650,
-      665, 560,
-      860, 520,
-      1065, 610,
-      1165, 470,
-      1010, 355,
-      1125, 275
+      92, 175,
+      155, 245,
+      275, 285,
+      405, 280,
+      520, 235,
+      610, 165,
+      735, 155,
+      845, 205,
+      900, 300,
+      865, 365,
+      760, 405,
+      620, 420,
+      485, 450,
+      390, 520,
+      335, 615,
+      390, 680,
+      535, 700,
+      690, 655,
+      835, 650,
+      975, 680,
+      1115, 655,
+      1190, 575,
+      1145, 485,
+      1080, 405,
+      1125, 330,
+      1200, 275
     ]);
 
-    const enemy = addSprite(this, 'sprite_08', 115, 165, {
-      displayWidth: 48,
-      displayHeight: 48,
-      depth: 1
+    const enemy = addSprite(this, 'sprite_08', 92, 175, {
+      displayWidth: 44,
+      displayHeight: 44,
+      depth: 2
     });
     this.gameLayer.add(enemy);
 
     const progress = { value: 0 };
-    this.tweens.add({
+    const tween = this.tweens.add({
       targets: progress,
       value: 1,
-      duration: 22000,
+      duration: 30000,
       ease: 'Linear',
       onUpdate: () => {
         const point = route.getPoint(progress.value);
+        const tangent = route.getTangent(progress.value);
         if (point) enemy.setPosition(point.x, point.y);
+        if (tangent) enemy.setRotation(Math.atan2(tangent.y, tangent.x));
       },
-      onComplete: () => enemy.destroy()
+      onComplete: () => {
+        enemy.destroy();
+        this.enemyTweens = this.enemyTweens.filter((item) => item !== tween);
+      }
     });
+    this.enemyTweens.push(tween);
   }
 
   fitWorld(width, height) {
