@@ -238,39 +238,37 @@ export default class GameScene extends Phaser.Scene {
     TOWER_CARD_ORDER.forEach((key, index) => {
       const cfg = TOWER_TYPES[key];
       const style = CARD_STYLES[key];
-      const x = 61 + index * 94;
-      const y = 875;
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = 111 + col * 184;
+      const y = 829 + row * 88;
       const container = this.add.container(x, y).setDepth(1502);
       const card = this.add.graphics();
       card.fillStyle(style.bgTint, 1);
-      card.fillRoundedRect(-41, -82, 82, 164, 9);
+      card.fillRoundedRect(-84, -38, 168, 76, 8);
       card.lineStyle(2, style.accent, 0.95);
-      card.strokeRoundedRect(-41, -82, 82, 164, 9);
-      card.lineStyle(1, 0xffffff, 0.18);
-      card.strokeRoundedRect(-36, -77, 72, 154, 7);
-
-      const name = this.add.text(0, -65, style.label, {
-        fontSize: '12px', fontFamily: 'Arial', fontStyle: 'bold',
-        color: '#ffffff', align: 'center',
-        stroke: '#000000', strokeThickness: 2
-      }).setOrigin(0.5);
-      const icon = addSprite(this, cfg.frame, 0, -5, { scale: 0.37 });
-      const divider = this.add.graphics();
-      divider.lineStyle(1, style.accent, 0.65);
-      divider.lineBetween(-30, 43, 30, 43);
+      card.strokeRoundedRect(-84, -38, 168, 76, 8);
+      card.lineStyle(1, 0xffffff, 0.16);
+      card.strokeRoundedRect(-79, -33, 158, 66, 6);
+      const icon = addSprite(this, cfg.frame, -53, 0, { scale: 0.255 });
+      const name = this.add.text(-25, -17, style.label, {
+        fontSize: '13px', fontFamily: 'Arial', fontStyle: 'bold',
+        color: '#ffffff', stroke: '#000000', strokeThickness: 2,
+        align: 'left'
+      }).setOrigin(0, 0.5);
       const pricePlate = this.add.graphics();
       pricePlate.fillStyle(0x080e18, 0.98);
-      pricePlate.fillRoundedRect(-32, 50, 64, 24, 5);
-      const coin = addSprite(this, 'sprite_32', -15, 62, { scale: 0.21 });
-      const price = this.add.text(7, 62, String(cfg.cost), {
+      pricePlate.fillRoundedRect(-27, 7, 76, 24, 5);
+      const coin = addSprite(this, 'sprite_32', -14, 19, { scale: 0.19 });
+      const price = this.add.text(8, 19, String(cfg.cost), {
         fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold',
         color: '#ffdf72', stroke: '#000000', strokeThickness: 2
       }).setOrigin(0.5);
       const outline = this.add.graphics().setVisible(false);
       outline.lineStyle(3, 0x7dff9b, 1);
-      outline.strokeRoundedRect(-45, -86, 90, 172, 11);
-      container.add([card, name, icon, divider, pricePlate, coin, price, outline]);
-      container.setSize(84, 166).setInteractive({ useHandCursor: true });
+      outline.strokeRoundedRect(-88, -42, 176, 84, 10);
+      container.add([card, icon, name, pricePlate, coin, price, outline]);
+      container.setSize(172, 80).setInteractive({ useHandCursor: true });
       container.on('pointerdown', () => this.selectTowerCard(key));
       this.uiLayer.add(container);
       this.towerCards[key] = {
@@ -307,32 +305,30 @@ export default class GameScene extends Phaser.Scene {
     rightPanel.lineBetween(1072, 765, 1072, 922);
     this.uiLayer.add(rightPanel);
 
-    this.comboText = this.add.text(975, 779, 'КОМБО  x1', {
-      fontSize: '17px', fontFamily: 'Arial', fontStyle: 'bold',
+    this.comboText = this.add.text(975, 790, 'КОМБО  x1', {
+      fontSize: '19px', fontFamily: 'Arial', fontStyle: 'bold',
       color: '#ffdc78', stroke: '#111827', strokeThickness: 3
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.comboText);
-    const manaCrystal = addSprite(this, 'sprite_33', 975, 835, { scale: 0.48, depth: 1503 });
+    const manaCrystal = addSprite(this, 'sprite_33', 945, 846, { scale: 0.22, depth: 1503 });
     this.uiLayer.add(manaCrystal);
-    this.tweens.add({ targets: manaCrystal, y: 831, duration: 950, yoyo: true,
-      repeat: -1, ease: 'Sine.easeInOut' });
-    this.manaGainText = this.add.text(975, 882, '+15 маны', {
+    this.manaGainText = this.add.text(1001, 846, '+15 маны', {
       fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
       color: '#83e5ff', stroke: '#111827', strokeThickness: 2
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.manaGainText);
 
-    this.uiLayer.add(addSprite(this, 'sprite_39', 1166, 792, { scale: 0.36, depth: 1503 }));
+    this.uiLayer.add(addSprite(this, 'sprite_39', 1166, 792, { scale: 0.31, depth: 1503 }));
     this.waveGoalTitle = this.add.text(1166, 839, `ВОЛНА ${this.waveNumber}/${this.maxWaves}`, {
       fontSize: '16px', fontFamily: 'Arial', fontStyle: 'bold',
       color: '#ffdc78', stroke: '#111827', strokeThickness: 3
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.waveGoalTitle);
-    const goalText = this.add.text(1166, 887, 'Отразить 15 волн\nи защитить замок', {
-      fontSize: '13px', fontFamily: 'Arial', fontStyle: 'bold',
+    const goalText = this.add.text(1166, 887, 'Отразить 15 волн\\nи защитить замок', {
+      fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold',
       color: '#f3e5c2', align: 'center', lineSpacing: 4,
       stroke: '#111827', strokeThickness: 2,
-      wordWrap: { width: 160 }
+      wordWrap: { width: 164 }
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(goalText);
 
