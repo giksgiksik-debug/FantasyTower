@@ -20,7 +20,7 @@ export default class GameScene extends Phaser.Scene {
     this.enemyTimer = null;
     this.enemyTweens = [];
     this.worldRoot = null;
-    this.DEBUG_PATH = true;
+    this.DEBUG_PATH = false;
     this.roadPath = null;
     this.pathEditor = null;
   }
@@ -221,14 +221,18 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createRoadPath() {
-    // Coordinates are in the 1280x714 map design space.
-    // These are editable starter points; DEBUG_PATH lets you refine them on the phone.
+    // User-traced route coordinates in the 1280x714 map design space.
     const points = [
-      155, 175, 245, 215, 385, 200, 565, 145, 740, 148,
-      845, 205, 815, 275, 650, 320, 465, 340, 345, 385,
-      265, 470, 240, 565, 335, 645, 490, 645, 645, 570,
-      800, 550, 955, 620, 1105, 610, 1140, 515, 1030, 425,
-      1020, 340, 1125, 270
+      155, 175, 163, 177, 149, 174, 213, 234, 298, 245, 354, 266,
+      407, 252, 483, 257, 562, 229, 628, 185, 664, 146, 729, 121,
+      792, 139, 846, 172, 867, 227, 837, 257, 775, 287, 700, 298,
+      641, 313, 580, 319, 538, 320, 477, 335, 429, 334, 378, 335,
+      345, 349, 305, 381, 254, 443, 208, 484, 203, 528, 195, 567,
+      223, 601, 279, 625, 337, 638, 398, 625, 464, 616, 535, 613,
+      605, 610, 664, 560, 730, 538, 817, 529, 857, 553, 900, 591,
+      971, 630, 1062, 632, 1132, 603, 1166, 557, 1162, 507, 1142, 471,
+      1091, 457, 1065, 429, 1040, 408, 1025, 369, 1038, 326, 1083, 302,
+      1115, 280, 1137, 256
     ];
 
     this.roadPoints = [...points];
