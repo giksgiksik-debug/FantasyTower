@@ -328,7 +328,7 @@ export default class GameScene extends Phaser.Scene {
       color: '#ffdc78', stroke: '#111827', strokeThickness: 3
     }).setOrigin(0.5).setDepth(1503);
     this.uiLayer.add(this.waveGoalTitle);
-    const goalText = this.add.text(1166, 887, 'Отразить 15 волн\\nи защитить замок', {
+    const goalText = this.add.text(1166, 887, 'Отразить 15 волн\nи защитить замок', {
       fontSize: '13px', fontFamily: 'Arial', fontStyle: 'bold',
       color: '#f3e5c2', align: 'center', lineSpacing: 4,
       stroke: '#111827', strokeThickness: 2,
