@@ -50,7 +50,9 @@ export default class GameScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.background = this.add.rectangle(0, 0, width, height, 0x14251d).setOrigin(0).setDepth(-10);
-    this.assetGalleryMode = new URLSearchParams(window.location.search).get('assets') === '1';
+    const params = new URLSearchParams(window.location.search);
+    this.assetGalleryMode = params.get('assets') === '1';
+    this.padEditorMode = params.get('pads') === '1';
 
     if (this.assetGalleryMode) {
       this.renderAssetGallery(width, height);
@@ -71,6 +73,8 @@ export default class GameScene extends Phaser.Scene {
       this.enemyTweens.forEach((tween) => tween.stop());
       this.enemyTweens = [];
       if (this.pathEditor?.pointerHandler) this.input.off('pointerdown', this.pathEditor.pointerHandler);
+      if (this.padEditorPointerHandler) this.input.off('pointerdown', this.padEditorPointerHandler);
+      this.padEditorLabels?.forEach((label) => label.destroy());
     });
   }
 
@@ -81,6 +85,11 @@ export default class GameScene extends Phaser.Scene {
     );
     this.uiLayer.add(this.add.rectangle(0, MAP_HEIGHT, DESIGN_WIDTH, DESIGN_HEIGHT - MAP_HEIGHT, 0x101a2d)
       .setOrigin(0).setDepth(0));
+
+    if (this.padEditorMode) {
+      this.enablePadEditor();
+      return;
+    }
 
     this.createRoadPath();
     this.createTowerPads();
@@ -650,6 +659,80 @@ export default class GameScene extends Phaser.Scene {
       if (nextMatches.length) this.resolveMatches(nextMatches);
       else this.isResolvingBoard = false;
     });
+  }
+
+  enablePadEditor() {
+    // Standalone touch editor for choosing tower build-pad positions.
+    // Open with ?pads=1; exported coordinates are copied into src/data/towers.js later.
+    this.padEditorPoints = [];
+    this.padEditorGraphics = this.add.graphics().setDepth(2500);
+    this.uiLayer.add(this.padEditorGraphics);
+
+    const style = {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '17px',
+      color: '#ffffff',
+      backgroundColor: '#172235',
+      padding: { x: 9, y: 7 }
+    };
+    const addControl = (x, label, callback) => {
+      const control = this.add.text(x, 12, label, style)
+        .setDepth(3000).setScrollFactor(0)
+        .setInteractive({ useHandCursor: true });
+      control.on('pointerdown', (pointer) => {
+        pointer.event?.stopPropagation?.();
+        callback();
+        this.drawPadEditor();
+      });
+      this.uiLayer.add(control);
+      return control;
+    };
+
+    addControl(12, 'Очистить', () => { this.padEditorPoints = []; });
+    addControl(118, 'Отменить', () => { this.padEditorPoints.pop(); });
+    addControl(230, 'Координаты', () => {
+      const pairs = this.padEditorPoints.map((p) => `{ x: ${p.x}, y: ${p.y} }`).join(',\\n  ');
+      window.prompt('Скопируй координаты площадок:', pairs);
+    });
+    addControl(385, 'Готово', () => {
+      const pairs = this.padEditorPoints.map((p) => `{ x: ${p.x}, y: ${p.y} }`).join(', ');
+      window.prompt('Координаты для src/data/towers.js:', pairs);
+    });
+
+    this.padEditorPointerHandler = (pointer) => {
+      const point = this.screenToWorld(pointer.x, pointer.y);
+      if (point.y < 58 || point.y > MAP_HEIGHT || point.x < 0 || point.x > DESIGN_WIDTH) return;
+      this.padEditorPoints.push({ x: Math.round(point.x), y: Math.round(point.y) });
+      this.drawPadEditor();
+    };
+    this.input.on('pointerdown', this.padEditorPointerHandler);
+    this.drawPadEditor();
+  }
+
+  drawPadEditor() {
+    if (!this.padEditorGraphics) return;
+    const g = this.padEditorGraphics;
+    g.clear();
+    this.padEditorPoints.forEach((point, index) => {
+      g.lineStyle(4, 0xffffff, 0.95);
+      g.strokeEllipse(point.x, point.y, 78, 48);
+      g.fillStyle(0x00e676, 0.3);
+      g.fillEllipse(point.x, point.y, 78, 48);
+      g.fillStyle(0x101010, 0.95);
+      g.fillCircle(point.x, point.y, 13);
+      const number = this.add.text(point.x, point.y, String(index + 1), {
+        fontFamily: 'Arial, sans-serif', fontSize: '15px',
+        fontStyle: 'bold', color: '#ffffff'
+      }).setOrigin(0.5).setDepth(2502);
+      this.gameLayer.add(number);
+      if (!this.padEditorLabels) this.padEditorLabels = [];
+      this.padEditorLabels.push(number);
+    });
+    this.add.text(14, 58,
+      `РЕЖИМ РАССТАНОВКИ · Точек: ${this.padEditorPoints.length} · Нажимай по центру каждой площадки`,
+      { fontFamily: 'Arial, sans-serif', fontSize: '16px', color: '#ffffff',
+        backgroundColor: '#172235', padding: { x: 8, y: 5 } })
+      .setDepth(3000).setScrollFactor(0);
   }
 
   enablePathEditor() {
