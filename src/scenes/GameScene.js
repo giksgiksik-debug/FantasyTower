@@ -15,6 +15,16 @@ const ENEMY_CONFIGS = Object.freeze({
 });
 const ENEMY_TYPES = Object.freeze(Object.keys(ENEMY_CONFIGS));
 const TOWER_CARD_ORDER = ['archer', 'mage', 'ice', 'lightning'];
+const CARD_STYLES = Object.freeze({
+  archer: { accent: 0x38d96b, bgTint: 0x163824, label: 'Лучник' },
+  mage: { accent: 0xff6a2b, bgTint: 0x3b1d14, label: 'Маг огня' },
+  ice: { accent: 0x38c6ff, bgTint: 0x142e42, label: 'Лёд' },
+  lightning: { accent: 0xffd633, bgTint: 0x362d14, label: 'Молния' }
+});
+const GEM_COLORS = Object.freeze({
+  gem_purple: 0xc855ff, gem_yellow: 0xffd633, gem_green: 0x38e06b,
+  gem_blue: 0x38b6ff, gem_red: 0xff4747
+});
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -31,6 +41,13 @@ export default class GameScene extends Phaser.Scene {
     this.isResolvingBoard = false;
     this.gold = 250;
     this.mana = 120;
+    this.combo = 1;
+    this.waveNumber = 1;
+    this.maxWaves = 15;
+    this.isPaused = false;
+    this.gemSelectCursor = null;
+    this.spellBtnBg = null;
+    this.spellBtnText = null;
     this.castleHp = 20;
     this.maxCastleHp = 20;
     this.selectedTowerKey = null;
@@ -146,9 +163,25 @@ export default class GameScene extends Phaser.Scene {
     this.uiLayer.add(addSprite(this, 'sprite_32', 710, 32, { scale: 0.45, depth: 1801 }));
     this.goldText = this.add.text(735, 21, '', { ...style, color: '#ffd859' }).setDepth(1801);
     this.uiLayer.add(this.goldText);
-    this.uiLayer.add(addSprite(this, 'sprite_28', 885, 32, { scale: 0.42, depth: 1801 }));
+    const pauseButton = addSprite(this, 'sprite_28', 885, 32, { scale: 0.42, depth: 1801 });
+    pauseButton.setInteractive({ useHandCursor: true });
+    pauseButton.on('pointerdown', () => this.togglePause(pauseButton));
+    this.uiLayer.add(pauseButton);
     this.uiLayer.add(addSprite(this, 'sprite_29', 945, 32, { scale: 0.42, depth: 1801 }));
     this.updateHud();
+  }
+
+  togglePause(button) {
+    this.isPaused = !this.isPaused;
+    if (this.isPaused) {
+      this.tweens.pauseAll();
+      this.time.timeScale = 0;
+      button?.setTint(0xffaa44);
+    } else {
+      this.time.timeScale = 1;
+      this.tweens.resumeAll();
+      button?.clearTint();
+    }
   }
 
   updateHud() {
@@ -156,6 +189,7 @@ export default class GameScene extends Phaser.Scene {
     this.manaText?.setText(String(this.mana));
     this.goldText?.setText(String(this.gold));
     this.refreshCardStates();
+    this.refreshSpellButton();
   }
 
   createTowerPads() {
@@ -180,34 +214,168 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createBottomUi() {
-    this.uiLayer.add(addSprite(this, 'sprite_17', 180, 870, {
-      displayWidth: 350, displayHeight: 230, depth: 5
+    const dock = this.add.graphics().setDepth(1490);
+    dock.fillGradientStyle(0x0d1526, 0x0d1526, 0x070b14, 0x070b14, 0.98);
+    dock.fillRect(0, MAP_HEIGHT, DESIGN_WIDTH, DESIGN_HEIGHT - MAP_HEIGHT);
+    dock.lineStyle(3, 0xc8963e, 0.95);
+    dock.lineBetween(0, MAP_HEIGHT, DESIGN_WIDTH, MAP_HEIGHT);
+    this.uiLayer.add(dock);
+
+    this.uiLayer.add(addSprite(this, 'sprite_17', 244, 870, {
+      displayWidth: 472, displayHeight: 196, depth: 1500
     }));
+    this.uiLayer.add(addSprite(this, 'sprite_25', 244, 738, {
+      displayWidth: 236, displayHeight: 30, depth: 1505
+    }));
+    this.uiLayer.add(this.add.text(244, 738, 'Башни Обороны', {
+      fontSize: '16px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#fff6d6', stroke: '#3b2306', strokeThickness: 3
+    }).setOrigin(0.5).setDepth(1506));
 
     TOWER_CARD_ORDER.forEach((key, index) => {
       const cfg = TOWER_TYPES[key];
-      const x = 55 + index * 83;
+      const style = CARD_STYLES[key];
+      const x = 73 + index * 114;
       const y = 870;
-      const cardBg = addSprite(this, 'sprite_19', x, y, { scale: 0.57, depth: 6 });
-      cardBg.setInteractive({ useHandCursor: true });
-      const icon = addSprite(this, cfg.frame, x, y - 19, { scale: 0.34, depth: 7 });
-      const coin = addSprite(this, 'sprite_32', x - 20, y + 43, { scale: 0.25, depth: 7 });
-      const priceText = this.add.text(x - 5, y + 34, String(cfg.cost), {
-        fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold', color: '#ffd859'
-      }).setDepth(7);
-      this.uiLayer.add([cardBg, icon, coin, priceText]);
-      cardBg.on('pointerdown', () => this.selectTowerCard(key));
-      this.towerCards[key] = { cardBg, icon, priceText, cfg };
+      const container = this.add.container(x, y).setDepth(1502);
+      const glow = this.add.graphics();
+      glow.fillStyle(style.bgTint, 0.95);
+      glow.fillRoundedRect(-46, -74, 92, 148, 10);
+      glow.lineStyle(2, style.accent, 0.9);
+      glow.strokeRoundedRect(-44, -72, 88, 144, 9);
+      const frame = addSprite(this, 'sprite_19', 0, 0, { displayWidth: 104, displayHeight: 160 });
+      const namePlate = this.add.graphics();
+      namePlate.fillStyle(0x0b111e, 0.9);
+      namePlate.fillRoundedRect(-41, -69, 82, 20, 5);
+      namePlate.lineStyle(1, style.accent, 0.85);
+      namePlate.strokeRoundedRect(-41, -69, 82, 20, 5);
+      const name = this.add.text(0, -59, style.label, {
+        fontSize: '12px', fontFamily: 'Arial', fontStyle: 'bold',
+        color: '#ffffff', stroke: '#000000', strokeThickness: 2
+      }).setOrigin(0.5);
+      const icon = addSprite(this, cfg.frame, 0, -4, { scale: 0.43 });
+      const pricePlate = this.add.graphics();
+      pricePlate.fillStyle(0x090e1a, 0.94);
+      pricePlate.fillRoundedRect(-38, 46, 76, 22, 6);
+      pricePlate.lineStyle(1.5, 0xd4a446, 0.9);
+      pricePlate.strokeRoundedRect(-38, 46, 76, 22, 6);
+      const coin = addSprite(this, 'sprite_32', -19, 57, { scale: 0.26 });
+      const price = this.add.text(8, 57, String(cfg.cost), {
+        fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
+        color: '#ffd859', stroke: '#000000', strokeThickness: 2
+      }).setOrigin(0.5);
+      const outline = this.add.graphics().setVisible(false);
+      outline.lineStyle(3, 0x66ff88, 1);
+      outline.strokeRoundedRect(-51, -79, 102, 158, 11);
+      container.add([glow, frame, namePlate, name, icon, pricePlate, coin, price, outline]);
+      container.setSize(104, 160).setInteractive({ useHandCursor: true });
+      container.on('pointerdown', () => this.selectTowerCard(key));
+      this.uiLayer.add(container);
+      this.towerCards[key] = {
+        container, baseY: y, frame, icon, priceText: price, selectOutline: outline, cfg
+      };
     });
 
     this.uiLayer.add(addSprite(this, 'sprite_22', 640, 870, {
-      displayWidth: 430, displayHeight: 290, depth: 4
+      displayWidth: 432, displayHeight: 316, depth: 1500
     }));
-    this.uiLayer.add(addSprite(this, 'sprite_18', 1090, 870, {
-      displayWidth: 300, displayHeight: 230, depth: 5
+    this.gemSelectCursor = addSprite(this, 'sprite_23', 0, 0, {
+      displayWidth: 58, displayHeight: 58, depth: 1515
+    }).setVisible(false);
+    this.uiLayer.add(this.gemSelectCursor);
+    this.tweens.add({
+      targets: this.gemSelectCursor, scaleX: this.gemSelectCursor.scaleX * 1.07,
+      scaleY: this.gemSelectCursor.scaleY * 1.07, duration: 450, yoyo: true, repeat: -1
+    });
+
+    this.uiLayer.add(addSprite(this, 'sprite_18', 1099, 870, {
+      displayWidth: 342, displayHeight: 196, depth: 1500
     }));
+    const rightDeco = this.add.graphics().setDepth(1501);
+    rightDeco.fillStyle(0x131d33, 0.85);
+    rightDeco.fillRoundedRect(942, 785, 148, 170, 8);
+    rightDeco.fillStyle(0x231c14, 0.88);
+    rightDeco.fillRoundedRect(1096, 785, 160, 170, 8);
+    rightDeco.lineStyle(1.5, 0xc8963e, 0.75);
+    rightDeco.strokeRoundedRect(942, 785, 148, 170, 8);
+    rightDeco.strokeRoundedRect(1096, 785, 160, 170, 8);
+    this.uiLayer.add(rightDeco);
+
+    this.comboText = this.add.text(1016, 804, 'Комбо x1', {
+      fontSize: '18px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#ffd859', stroke: '#000000', strokeThickness: 3
+    }).setOrigin(0.5).setDepth(1503);
+    this.uiLayer.add(this.comboText);
+    const manaCrystal = addSprite(this, 'sprite_33', 1016, 852, { scale: 0.56, depth: 1503 });
+    this.uiLayer.add(manaCrystal);
+    this.tweens.add({ targets: manaCrystal, y: 847, duration: 900, yoyo: true,
+      repeat: -1, ease: 'Sine.easeInOut' });
+    this.manaGainText = this.add.text(1016, 892, '+15 маны', {
+      fontSize: '15px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#6ee2ff', stroke: '#000000', strokeThickness: 2
+    }).setOrigin(0.5).setDepth(1503);
+    this.uiLayer.add(this.manaGainText);
+
+    this.spellBtnBg = addSprite(this, 'sprite_26', 1016, 948, {
+      displayWidth: 134, displayHeight: 32, depth: 1503
+    }).setInteractive({ useHandCursor: true });
+    this.spellBtnText = this.add.text(1016, 948, '⚡ Разряд (50)', {
+      fontSize: '13px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#ffffff', stroke: '#081b33', strokeThickness: 2
+    }).setOrigin(0.5).setDepth(1504);
+    this.uiLayer.add([this.spellBtnBg, this.spellBtnText]);
+    this.spellBtnBg.on('pointerdown', () => this.castLightningSpell());
+
+    this.uiLayer.add(addSprite(this, 'sprite_39', 1176, 808, { scale: 0.44, depth: 1503 }));
+    this.waveGoalTitle = this.add.text(1176, 846, `Волна ${this.waveNumber}/${this.maxWaves}`, {
+      fontSize: '17px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#ffd859', stroke: '#000000', strokeThickness: 3
+    }).setOrigin(0.5).setDepth(1503);
+    this.uiLayer.add(this.waveGoalTitle);
+    this.uiLayer.add(this.add.text(1176, 904, 'Отразить 15 волн\\nи защитить замок', {
+      fontSize: '14px', fontFamily: 'Arial', fontStyle: 'bold',
+      color: '#f3e5c2', align: 'center', lineSpacing: 4,
+      stroke: '#000000', strokeThickness: 2
+    }).setOrigin(0.5).setDepth(1503));
 
     this.refreshCardStates();
+    this.refreshSpellButton();
+  }
+
+  refreshSpellButton() {
+    if (!this.spellBtnBg || !this.spellBtnText) return;
+    const canCast = this.mana >= 50;
+    this.spellBtnBg.setAlpha(canCast ? 1 : 0.45);
+    this.spellBtnText.setAlpha(canCast ? 1 : 0.6);
+  }
+
+  castLightningSpell() {
+    if (this.isPaused || this.mana < 50) return;
+    let target = null;
+    let furthestProgress = -1;
+    for (const enemy of this.enemies) {
+      if (!enemy.isDead && enemy.progress > furthestProgress) {
+        target = enemy;
+        furthestProgress = enemy.progress;
+      }
+    }
+    if (!target) return;
+    this.mana -= 50;
+    this.updateHud();
+    const strikeX = target.x;
+    const strikeY = target.y - 16;
+    const effect = addSprite(this, 'sprite_15', strikeX, strikeY, { scale: 0.35, depth: 1700 });
+    this.gameLayer.add(effect);
+    this.cameras.main.shake(140, 0.006);
+    this.tweens.add({ targets: effect, scaleX: 0.95, scaleY: 0.95, alpha: 0,
+      duration: 420, ease: 'Quad.easeOut', onComplete: () => effect.destroy() });
+    const spellCfg = { damage: 120, slowFactor: 1, slowDuration: 0 };
+    [...this.enemies].forEach((enemy) => {
+      if (!enemy.isDead &&
+        Phaser.Math.Distance.Between(strikeX, strikeY, enemy.x, enemy.y - 15) <= 95) {
+        this.damageEnemy(enemy, spellCfg);
+      }
+    });
   }
 
   selectTowerCard(key) {
@@ -228,8 +396,10 @@ export default class GameScene extends Phaser.Scene {
       const selected = this.selectedTowerKey === key;
       item.icon.setAlpha(canAfford ? 1 : 0.45);
       item.priceText.setColor(canAfford ? '#ffd859' : '#ff6666');
-      item.cardBg.setTint(selected ? 0x99ff99 : 0xffffff);
-      item.cardBg.setScale(selected ? 0.61 : 0.57);
+      item.selectOutline.setVisible(selected);
+      this.tweens.add({ targets: item.container, y: selected ? item.baseY - 7 : item.baseY,
+        scaleX: selected ? 1.05 : 1, scaleY: selected ? 1.05 : 1,
+        duration: 120, ease: 'Quad.easeOut' });
     });
     const showRings = Boolean(this.selectedTowerKey);
     this.pads.forEach((pad) => pad.ring.setVisible(showRings && !pad.occupied));
@@ -384,6 +554,10 @@ export default class GameScene extends Phaser.Scene {
     const type = ENEMY_TYPES[this.enemySpawnIndex % ENEMY_TYPES.length];
     this.enemySpawnIndex += 1;
     this.spawnEnemy(type);
+    if (this.enemySpawnIndex % 6 === 0 && this.waveNumber < this.maxWaves) {
+      this.waveNumber += 1;
+      this.waveGoalTitle?.setText(`Волна ${this.waveNumber}/${this.maxWaves}`);
+    }
   }
 
   spawnEnemy(type = 'goblin') {
@@ -525,7 +699,7 @@ export default class GameScene extends Phaser.Scene {
     if (!gem?.active || this.isResolvingBoard || this.isSwapping) return;
     if (!this.selectedGem) {
       this.selectedGem = gem;
-      gem.setTint(0xaaffaa);
+      this.gemSelectCursor?.setPosition(gem.x, gem.y).setVisible(true);
       return;
     }
     const previous = this.selectedGem;
@@ -537,12 +711,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   clearSelection() {
-    if (this.selectedGem?.active) this.selectedGem.clearTint();
     this.selectedGem = null;
+    this.gemSelectCursor?.setVisible(false);
   }
 
   swapGems(first, second) {
-    if (!first?.active || !second?.active || this.isSwapping || this.isResolvingBoard) return;
+    if (!first?.active || !second?.active || this.isSwapping || this.isResolvingBoard || this.isPaused) return;
+    this.combo = 1;
+    this.comboText?.setText('Комбо x1');
     this.isSwapping = true;
     const a = { row: first.row, col: first.col, x: first.x, y: first.y };
     const b = { row: second.row, col: second.col, x: second.x, y: second.y };
@@ -609,14 +785,22 @@ export default class GameScene extends Phaser.Scene {
   resolveMatches(matches) {
     if (!matches.length) { this.isResolvingBoard = false; return; }
     this.isResolvingBoard = true;
-    const removed = new Set(matches);
     matches.forEach((gem) => {
       this.board[gem.row][gem.col] = null;
-      this.tweens.add({ targets: gem, scale: 0, alpha: 0, duration: 140,
+      const burst = this.add.circle(gem.x, gem.y, 5, GEM_COLORS[gem.gemType] || 0xffffff)
+        .setDepth(1520);
+      this.uiLayer.add(burst);
+      this.tweens.add({ targets: burst, scale: 3.2, alpha: 0, duration: 220,
+        onComplete: () => burst.destroy() });
+      this.tweens.add({ targets: gem, scale: 0.05, alpha: 0, duration: 170,
         onComplete: () => gem.destroy() });
     });
-    this.gold += matches.length * 2;
-    this.mana += matches.length;
+    const gainedMana = matches.length * 5 * this.combo;
+    this.mana += gainedMana;
+    this.manaGainText?.setText(`+${gainedMana} маны`);
+    this.comboText?.setText(`Комбо x${this.combo}`);
+    this.tweens.add({ targets: [this.comboText, this.manaGainText],
+      scaleX: 1.2, scaleY: 1.2, duration: 120, yoyo: true });
     this.updateHud();
     this.time.delayedCall(155, () => this.dropAndRefill(removed));
   }
@@ -656,8 +840,14 @@ export default class GameScene extends Phaser.Scene {
     }
     this.time.delayedCall(240, () => {
       const nextMatches = this.findMatches();
-      if (nextMatches.length) this.resolveMatches(nextMatches);
-      else this.isResolvingBoard = false;
+      if (nextMatches.length) {
+        this.combo += 1;
+        this.resolveMatches(nextMatches);
+      } else {
+        this.combo = 1;
+        this.comboText?.setText('Комбо x1');
+        this.isResolvingBoard = false;
+      }
     });
   }
 
