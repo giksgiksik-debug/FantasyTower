@@ -711,6 +711,9 @@ export default class GameScene extends Phaser.Scene {
 
   drawPadEditor() {
     if (!this.padEditorGraphics) return;
+    this.padEditorLabels?.forEach((label) => label.destroy());
+    this.padEditorLabels = [];
+    this.padEditorInstruction?.destroy();
     const g = this.padEditorGraphics;
     g.clear();
     this.padEditorPoints.forEach((point, index) => {
@@ -725,10 +728,9 @@ export default class GameScene extends Phaser.Scene {
         fontStyle: 'bold', color: '#ffffff'
       }).setOrigin(0.5).setDepth(2502);
       this.gameLayer.add(number);
-      if (!this.padEditorLabels) this.padEditorLabels = [];
       this.padEditorLabels.push(number);
     });
-    this.add.text(14, 58,
+    this.padEditorInstruction = this.add.text(14, 58,
       `РЕЖИМ РАССТАНОВКИ · Точек: ${this.padEditorPoints.length} · Нажимай по центру каждой площадки`,
       { fontFamily: 'Arial, sans-serif', fontSize: '16px', color: '#ffffff',
         backgroundColor: '#172235', padding: { x: 8, y: 5 } })
