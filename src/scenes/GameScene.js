@@ -265,7 +265,6 @@ export default class GameScene extends Phaser.Scene {
       ease: 'Linear',
       onUpdate: () => {
         const point = route.getPoint(progress.value);
-        const tangent = route.getTangent(progress.value);
         if (point) enemy.setPosition(point.x, point.y);
         // Keep the mob sprite upright; atlas artwork is not authored for directional rotation.
       },
