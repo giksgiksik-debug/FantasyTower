@@ -216,39 +216,28 @@ export default class GameScene extends Phaser.Scene {
   spawnEnemy() {
     if (!this.gameLayer || !this.textures.exists('game-atlas')) return;
 
-    // Waypoints trace the visible stone road on the 1280x714 map.
-    // The route is confined to the map region; the HUD starts below it.
-    const route = new Phaser.Curves.Spline([
-      120, 150,
-      180, 205,
-      280, 235,
-      390, 240,
-      500, 220,
-      560, 180,
-      650, 160,
-      760, 185,
-      835, 240,
-      850, 310,
-      820, 370,
-      750, 395,
-      650, 400,
-      550, 420,
-      490, 470,
-      460, 540,
-      490, 590,
-      580, 610,
-      700, 590,
-      820, 560,
-      940, 580,
-      1060, 590,
-      1130, 550,
-      1160, 490,
-      1130, 420,
-      1090, 360,
-      1100, 300,
-      1160, 245,
-      1220, 190
-    ]);
+    // Follow the road centerline on the 1280x714 map.
+    // A polyline is intentional: a spline can overshoot the narrow bridge and bends.
+    const routePoints = [
+      [120, 155], [135, 190], [165, 220], [205, 242], [250, 255],
+      [300, 263], [350, 265], [400, 265], [445, 270], [485, 275],
+      [520, 270], [550, 250], [575, 225], [600, 195], [630, 165],
+      [665, 145], [705, 132], [750, 128], [790, 132], [830, 145],
+      [860, 168], [882, 195], [895, 225], [895, 252], [882, 278],
+      [860, 298], [830, 313], [790, 324], [745, 330], [700, 334],
+      [655, 338], [610, 340], [565, 342], [520, 345], [480, 350],
+      [445, 355], [415, 365], [390, 385], [365, 410], [335, 435],
+      [300, 460], [265, 490], [240, 520], [230, 550], [240, 575],
+      [265, 592], [305, 605], [350, 610], [395, 610], [440, 605],
+      [485, 595], [530, 582], [575, 565], [620, 548], [665, 535],
+      [710, 530], [755, 532], [800, 540], [845, 550], [890, 562],
+      [935, 575], [980, 585], [1020, 585], [1055, 575], [1085, 555],
+      [1110, 530], [1125, 500], [1125, 470], [1115, 440], [1095, 410],
+      [1075, 380], [1055, 350], [1045, 320], [1050, 292], [1070, 268],
+      [1095, 248], [1125, 232], [1155, 222]
+    ];
+    const route = new Phaser.Curves.Path(routePoints[0][0], routePoints[0][1]);
+    routePoints.slice(1).forEach(([x, y]) => route.lineTo(x, y));
 
     const enemy = addSprite(this, 'sprite_08', 92, 175, {
       displayWidth: 44,
@@ -261,7 +250,7 @@ export default class GameScene extends Phaser.Scene {
     const tween = this.tweens.add({
       targets: progress,
       value: 1,
-      duration: 30000,
+      duration: 42000,
       ease: 'Linear',
       onUpdate: () => {
         const point = route.getPoint(progress.value);
