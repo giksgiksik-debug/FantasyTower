@@ -244,7 +244,9 @@ export default class GameScene extends Phaser.Scene {
   spawnEnemy(duration = 24000) {
     if (!this.gameLayer || !this.roadPath || !this.textures.exists('game-atlas')) return;
 
-    const start = this.roadPath.getPoint(0);
+    // Start the mob just inside the path and move it on the very first tween update.
+    const progress = { value: 0.001 };
+    const start = this.roadPath.getPoint(progress.value);
     const enemy = addSprite(this, 'sprite_08', start.x, start.y, {
       displayWidth: 44,
       displayHeight: 44,
@@ -252,12 +254,19 @@ export default class GameScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.85);
     this.gameLayer.add(enemy);
 
-    const progress = { value: 0 };
     const tween = this.tweens.add({
       targets: progress,
       value: 1,
       duration,
       ease: 'Linear',
+      delay: 0,
+      onStart: () => {
+        const point = this.roadPath?.getPoint(progress.value);
+        if (point) {
+          enemy.setPosition(point.x, point.y);
+          enemy.setDepth(point.y);
+        }
+      },
       onUpdate: () => {
         const point = this.roadPath?.getPoint(progress.value);
         if (point) {
