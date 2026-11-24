@@ -13,7 +13,7 @@ export default class GameScene extends Phaser.Scene {
     this.rows = 5;
     this.cols = 7;
     this.gemSize = 56;
-    this.startX = 444;
+    this.startX = 472;
     this.startY = 758;
     this.selectedGem = null;
     this.dragStart = null;
@@ -60,18 +60,18 @@ export default class GameScene extends Phaser.Scene {
       .setOrigin(0).setDepth(0));
 
     // Interface frame placement follows the supplied layout reference.
-    this.uiLayer.add(addSprite(this, 'sprite_17', 190, 870, {
+    this.uiLayer.add(addSprite(this, 'sprite_17', 180, 870, {
       displayWidth: 350, displayHeight: 230, depth: 5
     }));
 
     for (let i = 0; i < 3; i++) {
-      this.uiLayer.add(addSprite(this, 'sprite_19', 75 + i * 105, 870, {
+      this.uiLayer.add(addSprite(this, 'sprite_19', 85 + i * 95, 870, {
         scale: 0.68, depth: 6
       }));
     }
 
     this.uiLayer.add(addSprite(this, 'sprite_22', 640, 870, {
-      displayWidth: 430, displayHeight: 315, depth: 4
+      displayWidth: 430, displayHeight: 290, depth: 4
     }));
     this.uiLayer.add(addSprite(this, 'sprite_18', 1090, 870, {
       displayWidth: 300, displayHeight: 230, depth: 5
@@ -219,32 +219,35 @@ export default class GameScene extends Phaser.Scene {
     // Waypoints trace the visible stone road on the 1280x714 map.
     // The route is confined to the map region; the HUD starts below it.
     const route = new Phaser.Curves.Spline([
-      92, 175,
-      155, 245,
-      275, 285,
-      405, 280,
-      520, 235,
-      610, 165,
-      735, 155,
-      845, 205,
-      900, 300,
-      865, 365,
-      760, 405,
-      620, 420,
-      485, 450,
-      390, 520,
-      335, 615,
-      390, 680,
-      535, 700,
-      690, 655,
-      835, 650,
-      975, 680,
-      1115, 655,
-      1190, 575,
-      1145, 485,
-      1080, 405,
-      1125, 330,
-      1200, 275
+      120, 150,
+      180, 205,
+      280, 235,
+      390, 240,
+      500, 220,
+      560, 180,
+      650, 160,
+      760, 185,
+      835, 240,
+      850, 310,
+      820, 370,
+      750, 395,
+      650, 400,
+      550, 420,
+      490, 470,
+      460, 540,
+      490, 590,
+      580, 610,
+      700, 590,
+      820, 560,
+      940, 580,
+      1060, 590,
+      1130, 550,
+      1160, 490,
+      1130, 420,
+      1090, 360,
+      1100, 300,
+      1160, 245,
+      1220, 190
     ]);
 
     const enemy = addSprite(this, 'sprite_08', 92, 175, {
@@ -264,7 +267,7 @@ export default class GameScene extends Phaser.Scene {
         const point = route.getPoint(progress.value);
         const tangent = route.getTangent(progress.value);
         if (point) enemy.setPosition(point.x, point.y);
-        if (tangent) enemy.setRotation(Math.atan2(tangent.y, tangent.x));
+        // Keep the mob sprite upright; atlas artwork is not authored for directional rotation.
       },
       onComplete: () => {
         enemy.destroy();
