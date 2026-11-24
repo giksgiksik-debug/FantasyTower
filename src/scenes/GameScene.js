@@ -6,11 +6,11 @@ const DESIGN_HEIGHT = 1024;
 const MAP_HEIGHT = 714;
 const GEM_TYPES = ['gem_purple', 'gem_yellow', 'gem_green', 'gem_blue', 'gem_red'];
 const ENEMY_CONFIGS = Object.freeze({
-  goblin:   { frame: 'sprite_08', scale: 0.52, duration: 20000, stepSpeed: 13, hop: 7, tilt: 6 },
-  orc:      { frame: 'sprite_09', scale: 0.56, duration: 26000, stepSpeed: 9, hop: 5, tilt: 5 },
-  skeleton: { frame: 'sprite_10', scale: 0.54, duration: 22000, stepSpeed: 11, hop: 6, tilt: 6 },
-  wolf:     { frame: 'sprite_11', scale: 0.54, duration: 17000, stepSpeed: 15, hop: 8, tilt: 4 },
-  boss:     { frame: 'sprite_12', scale: 0.65, duration: 34000, stepSpeed: 6, hop: 4, tilt: 4 }
+  goblin:   { frame: 'sprite_08', scale: 0.28, duration: 20000, stepSpeed: 13, hop: 4, tilt: 6 },
+  orc:      { frame: 'sprite_09', scale: 0.23, duration: 26000, stepSpeed: 9, hop: 3, tilt: 5 },
+  skeleton: { frame: 'sprite_10', scale: 0.24, duration: 22000, stepSpeed: 11, hop: 3.5, tilt: 6 },
+  wolf:     { frame: 'sprite_11', scale: 0.27, duration: 17000, stepSpeed: 15, hop: 4, tilt: 4 },
+  boss:     { frame: 'sprite_12', scale: 0.24, duration: 34000, stepSpeed: 6, hop: 2.5, tilt: 4 }
 });
 const ENEMY_TYPES = Object.freeze(Object.keys(ENEMY_CONFIGS));
 
