@@ -380,6 +380,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   selectTowerCard(key) {
+    if (this.isPaused) return;
     const cfg = TOWER_TYPES[key];
     const card = this.towerCards[key]?.container;
     if (!cfg || !card) return;
@@ -407,7 +408,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   onPadClick(pad) {
-    if (pad.occupied) return;
+    if (this.isPaused || pad.occupied) return;
     if (!this.selectedTowerKey) {
       const affordable = TOWER_CARD_ORDER.find((key) => this.gold >= TOWER_TYPES[key].cost);
       if (!affordable) return;
@@ -656,13 +657,13 @@ export default class GameScene extends Phaser.Scene {
 
   createInputHandlers() {
     this.input.on('pointerdown', (pointer) => {
-      if (!this.worldRoot || this.isResolvingBoard) return;
+      if (this.isPaused || !this.worldRoot || this.isResolvingBoard) return;
       const point = this.screenToWorld(pointer.x, pointer.y);
       const gem = this.findGemAt(point.x, point.y);
       if (gem) this.dragStart = { x: point.x, y: point.y, gem };
     });
     this.input.on('pointerup', (pointer) => {
-      if (!this.dragStart || !this.worldRoot || this.isResolvingBoard) return;
+      if (this.isPaused || !this.dragStart || !this.worldRoot || this.isResolvingBoard) return;
       const start = this.dragStart;
       const point = this.worldRoot.getLocalPoint(pointer.x, pointer.y);
       const dx = point.x - start.x;
