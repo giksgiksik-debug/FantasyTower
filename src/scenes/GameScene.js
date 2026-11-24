@@ -126,6 +126,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this.isPaused) return;
     for (const enemy of this.enemies) {
       if (enemy.isDead || enemy.slowTimer <= 0) continue;
       enemy.slowTimer -= delta;
@@ -380,7 +381,7 @@ export default class GameScene extends Phaser.Scene {
 
   selectTowerCard(key) {
     const cfg = TOWER_TYPES[key];
-    const card = this.towerCards[key]?.cardBg;
+    const card = this.towerCards[key]?.container;
     if (!cfg || !card) return;
     if (this.gold < cfg.cost) {
       this.tweens.add({ targets: card, x: card.x + 5, duration: 50, yoyo: true, repeat: 3 });
@@ -802,7 +803,7 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: [this.comboText, this.manaGainText],
       scaleX: 1.2, scaleY: 1.2, duration: 120, yoyo: true });
     this.updateHud();
-    this.time.delayedCall(155, () => this.dropAndRefill(removed));
+    this.time.delayedCall(190, () => this.dropAndRefill());
   }
 
   dropAndRefill() {
