@@ -8,6 +8,9 @@
 - Recipe storage in IndexedDB.
 - PWA shell for Chrome on Android.
 
+## Deployment status
+GitHub Pages source is configured as GitHub Actions. The deployment workflow publishes this folder.
+
 ## Run
 Serve this folder over HTTPS (GitHub Pages or another static HTTPS host), then open it in Chrome on Android and choose Install app / Add to Home screen.
 
