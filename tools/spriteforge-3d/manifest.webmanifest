@@ -1,0 +1,12 @@
+{
+  "name": "SpriteForge 3D",
+  "short_name": "SpriteForge",
+  "description": "Mobile procedural isometric asset studio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#111827",
+  "orientation": "any",
+  "icons": []
+}
