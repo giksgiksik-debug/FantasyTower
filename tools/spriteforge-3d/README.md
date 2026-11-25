@@ -11,6 +11,8 @@
 ## Deployment status
 GitHub Pages source is configured as GitHub Actions. The deployment workflow publishes this folder.
 
+Latest deployment retry: branch protection for the `tool/spriteforge-3d` branch was reviewed.
+
 ## Run
 Serve this folder over HTTPS (GitHub Pages or another static HTTPS host), then open it in Chrome on Android and choose Install app / Add to Home screen.
 
