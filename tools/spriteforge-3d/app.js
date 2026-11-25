@@ -46,6 +46,7 @@ function addMesh(group,geometry,material,x,y,z,cast=true,receive=true){
 }
 function makeTower(p){
   // Stylized fantasy cat-wizard tower. All parts are real editable Three.js meshes.
+// SpriteForge prototype deployment check.
   const group=new THREE.Group();
   const stone=mat(0x9a9188), stoneLight=mat(0xc9b9a7), stoneDark=mat(0x5c514b);
   const blue=mat(0x153a9b,0.62), blueLight=mat(0x285bd5,0.48), gold=mat(0xf4b832,0.34);
