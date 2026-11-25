@@ -1,21 +1,17 @@
-# SpriteForge 3D — mobile prototype
+# SpriteForge 3D — Android-first asset studio
 
-Standalone Android-first PWA for procedural isometric game assets.
-
-## Prototype 0.1
-- Procedural low-poly stone defense tower (archer / cannon / magic presets)
-- Live Three.js viewport with touch orbit and pinch zoom
-- Orthographic isometric camera
-- Adjustable height, width, roof, material and detail
-- Transparent 512x512 PNG export
-- GLB model export
-- Recipe save to IndexedDB
-- PWA shell and runtime cache
+## Current asset: Cat Wizard Tower
+- Detailed procedural Three.js 3D model: orange-and-white wizard cat, blue star hat, robe, staff with attached magic orb, stone turret, paw banner, glowing windows, crystals and garden base.
+- Orthographic isometric preview with touch orbit and pinch zoom.
+- Transparent 512×512 PNG sprite export.
+- GLB export for reuse in a 3D pipeline.
+- Recipe storage in IndexedDB.
+- PWA shell for Chrome on Android.
 
 ## Run
-Serve this folder over HTTPS (GitHub Pages or another static HTTPS host), then open it in Chrome on Android and choose **Install app / Add to Home screen**.
+Serve this folder over HTTPS (GitHub Pages or another static HTTPS host), then open it in Chrome on Android and choose Install app / Add to Home screen.
 
-The first launch requires an internet connection to load Three.js modules. The service worker caches loaded modules for subsequent offline use.
+The first launch requires internet to load Three.js modules. The service worker caches loaded modules for subsequent offline use.
 
-## Notes
-This is an isolated tool branch and does not modify the game's active branch.
+## Important
+The cat wizard is generated from editable Three.js geometry, not a flattened reference illustration. PNG is a rendered 2D image; GLB is the reusable 3D scene. The current model is a first procedural pass and will be refined after viewing it on the phone.
