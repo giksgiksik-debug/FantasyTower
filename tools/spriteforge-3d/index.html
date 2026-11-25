@@ -17,7 +17,7 @@
   </header>
   <main class="workspace">
     <section class="viewport-panel">
-      <div class="viewport-head"><div><span class="eyebrow">3D WORKSPACE</span><h1 id="objectTitle">Каменная башня</h1></div><span class="view-chip">ISOMETRIC</span></div>
+      <div class="viewport-head"><div><span class="eyebrow">3D WORKSPACE</span><h1 id="objectTitle">Кот-маг · Башня волшебника</h1></div><span class="view-chip">ISOMETRIC</span></div>
       <div class="viewport-wrap" id="viewportWrap">
         <canvas id="viewport" aria-label="3D preview"></canvas>
         <div class="viewport-hint">Перетаскивай для вращения · двумя пальцами для масштаба</div>
@@ -29,12 +29,10 @@
       </div>
     </section>
     <aside class="controls-panel">
-      <div class="panel-title"><div><span class="eyebrow">PROCEDURAL BUILDER</span><h2>Конструкция</h2></div><span class="step-number">01</span></div>
+      <div class="panel-title"><div><span class="eyebrow">PROCEDURAL BUILDER</span><h2>Персонаж и башня</h2></div><span class="step-number">01</span></div>
       <label class="control-label" for="towerType">Тип башни</label>
       <select id="towerType">
-        <option value="archer">Лучная башня</option>
-        <option value="cannon">Пушечная башня</option>
-        <option value="magic">Магическая башня</option>
+        <option value="magic" selected>Кот-маг</option>
       </select>
       <div class="control-row"><label for="height">Высота</label><output id="heightValue">5.0</output></div>
       <input id="height" type="range" min="3" max="8" step="0.25" value="5">
