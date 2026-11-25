@@ -75,9 +75,9 @@ function makeTower(p){
     }
   }
   const doorH=Math.min(1.35,h*0.28), doorW=w*0.24;
-  const door=addMesh(group,new THREE.BoxGeometry(doorW,doorH,0.08),mat(0x33271f),0,doorH/2+0.02,baseR*0.91);
-  door.position.z=baseR*0.91;
-  addMesh(group,new THREE.BoxGeometry(doorW*1.22,0.12,0.13),trim,0,doorH+0.05,baseR*0.93);
+  const door=addMesh(group,new THREE.BoxGeometry(doorW,doorH,0.08),mat(0x33271f),0,doorH/2+0.02,bodyR*0.98);
+  door.position.z=bodyR*0.98;
+  addMesh(group,new THREE.BoxGeometry(doorW*1.22,0.12,0.13),trim,0,doorH+0.05,bodyR*1.02);
   const windowCount=p.detail===1?1:(p.detail===2?2:3);
   for(let row=0;row<windowCount;row++){
     const y=baseH+bodyH*(0.34+row*0.23);
@@ -122,8 +122,9 @@ function rebuild(){
   render();
 }
 function updateCamera(){
-  camera.position.set(cameraRadius*Math.sin(phi)*Math.cos(theta),cameraRadius*Math.cos(phi),cameraRadius*Math.sin(phi)*Math.sin(theta));
-  camera.lookAt(0,recipe.height*0.43,0);
+  const targetY=recipe.height*0.43;
+  camera.position.set(cameraRadius*Math.sin(phi)*Math.cos(theta),targetY+cameraRadius*Math.cos(phi),cameraRadius*Math.sin(phi)*Math.sin(theta));
+  camera.lookAt(0,targetY,0);
 }
 function render(){renderer.render(scene,camera);}
 function resize(){
@@ -137,7 +138,8 @@ function readControls(){
   recipe.type=document.getElementById("towerType").value;
   recipe.height=Number(document.getElementById("height").value);
   recipe.width=Number(document.getElementById("width").value);
-  recipe.roof=Number(document.getElementById("roof").value);
+  recipe.roof=Math.min(Number(document.getElementById("roof").value),recipe.height-1.34);
+  document.getElementById("roof").value=String(recipe.roof);
   recipe.material=document.getElementById("material").value;
   recipe.detail=Number(document.getElementById("detail").value);
   recipe.showGround=document.getElementById("showGround").checked;
