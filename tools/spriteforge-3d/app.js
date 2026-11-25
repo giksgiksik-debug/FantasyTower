@@ -220,7 +220,7 @@ function readControls(){
 });
 document.getElementById("resetCamera").addEventListener("click",()=>{theta=Math.PI/4;phi=Math.atan(Math.sqrt(2));cameraRadius=13;updateCamera();render();});
 document.getElementById("randomize").addEventListener("click",()=>{
-  const types=["archer","cannon","magic"],materials=Object.keys(palettes);
+  const types=["magic"],materials=Object.keys(palettes);
   recipe.type=types[Math.floor(Math.random()*types.length)];
   recipe.material=materials[Math.floor(Math.random()*materials.length)];
   recipe.height=Number((3.5+Math.random()*4).toFixed(2));
